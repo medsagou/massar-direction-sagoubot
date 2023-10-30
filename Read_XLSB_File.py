@@ -4,7 +4,7 @@ from print_sagou import *
 
 
 class Read_Db:
-    def __init__(self, input_file = "db/file_data.xlsb", output_file = "db/Book1.xlsx", df = "", to_fill_by_said = "db/Book10000.xlsx"):
+    def __init__(self, input_file = "db/file_data.xlsb", output_file = "db/template.xlsx", df = "", to_fill_by_said = "db/Book10000.xlsx"):
         self.index = {0: "CLASS_StudentIndex",
                       1: "Niveau",
                       2: "class_name",
@@ -32,11 +32,7 @@ class Read_Db:
 
         xlsb_file = pd.ExcelFile(self.input_file)
         df = xlsb_file.parse('Feuil3', header=None)  #
-        # pd.set_option('display.max_rows', None)
-        # pd.set_option('display.max_columns', None)
-        # print(df)
-        # pd.reset_option('display.max_rows')
-        # pd.reset_option('display.max_columns')
+
         self.df = df
         return df
 
@@ -78,7 +74,6 @@ class Read_Db:
         self.workbook_output.close()
         self.workbook_output = self.get_workbook(self.output_file)
         return
-
     def get_sheet_names_workbout_output(self):
         return self.workbook_output.sheetnames
 
@@ -95,8 +90,8 @@ class Read_Db:
             if classe != "":
                 self.create_copy_sheet(class_name=classe, workbook=workbook, source_sheet = source_sheet)
 
-        workbook.save(self.output_file)
-        # workbook.close()
+        workbook.save(str(self.output_file))
+        workbook.close()
         return
 
     def fill_all_class_sheets(self):
@@ -125,17 +120,16 @@ class Read_Db:
                             elif chr(col) == "C":
                                 self.add_value_to_sheet(worksheet=worksheet, cell=chr(col) + str(9 + i),
                                                         value=str(row[self.get_key("nom")] + " " + row[self.get_key("prenom")]))
+                            if i > 49:
+                                return
 
 
-                        if i > 49:
-                            return
                 else:
                     continue
+            # add number of students
+            self.add_value_to_sheet(worksheet=worksheet, cell="AO6", value=str(i))
             self.workbook_output.save(self.to_fill_by_said)
             # self.workbook_output.close()
-
-
-
         return
 
 

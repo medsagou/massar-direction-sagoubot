@@ -28,7 +28,7 @@ load_dotenv()  # loading the environment variables from the .env file
 
 
 
-class Massar_Sagou:
+class Massar_Direction_Sagou:
     def __init__(self, driver = ""):
         self.driver=driver
         return
@@ -47,11 +47,19 @@ class Massar_Sagou:
         try:
             self.driver.get(os.getenv("OFFICIAL_SITE"))
         except:
-            print_error("WE CAN OPEN THE BROWSER")
+            print_error("WE CAN't OPEN THE BROWSER")
             self.exit_program()
         else:
             print_info("SITE OPENED")
             return True
+
+    def get_list_page(self):
+        try:
+            self.driver.get("https://massar.men.gov.ma/Evaluation/Absence/AbsenceJournaliereParClasse")
+        except:
+            print_error("We Can't find the list page! Close the program and try again.")
+        else:
+            print_info("GETTING TO THE LIST PAGE")
 
 
     def fill_username(self):
@@ -145,8 +153,6 @@ class Massar_Sagou:
 
                 return D
 
-    def export_data(self):
-        return
 
     def close_tab(self):
         self.driver.quit()

@@ -30,3 +30,8 @@ class User_Interface:
         class_menu = Menu(menu_index="001")
         class_menu.print_menu()
         return (class_menu.ch, class_menu.returned_value)
+
+    def menu_valider(self):
+        class_menu = Menu(menu_index="011")
+        class_menu.print_menu()
+        return (class_menu.ch, class_menu.returned_value)
