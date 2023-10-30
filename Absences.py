@@ -7,6 +7,7 @@ from Menu import Menu
 import datetime
 from scan_absence import Scan_Absences
 from Read_XLSB_File import Read_Db
+from utilities import get_date_list
 
 
 from selenium.webdriver.common.by import By
@@ -17,9 +18,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 class Absence:
-    def __init__(self, driver="", date = ""):
+    def __init__(self, driver=""):
         self.driver = driver
-        self.date = date
         self.data_table_Xpath = "/html/body/div/div[1]/div[2]/div[2]/section[2]/div[2]/div[1]/div/div/div[2]/div/form/div/div/div/div/div/div/div/div[2]/div/table"
         self.data_table_reduced_Xpath = '//*[@id="DataTables-Table-0"]/tbody'
         self.row_Xpath = '//*[@id="DataTables-Table-0"]/tbody/tr['
@@ -27,6 +27,8 @@ class Absence:
         self.CNE_Xpath = ']/td[2]'
         self.select_Xpath = ']/td[4]/select'
         self.h_Xpath = ']/td['
+        self.dates = get_date_list()
+        self.searchBtn = self.driver.find_element(By.CSS_SELECTOR, "#search > div > div > div > div.box-body > div.blocBtn > button")
 
     def get_list_page(self):
         try:
@@ -40,7 +42,6 @@ class Absence:
         return
 
     def main_absence_loop(self):
-        searchBtn = self.driver.find_element(By.CSS_SELECTOR, "#search > div > div > div > div.box-body > div.blocBtn > button")
         TypeEnseignement = self.driver.find_element(By.ID, "TypeEnseignement")
         TypeEnseignement_all_options = TypeEnseignement.find_elements(By.TAG_NAME, "option")
         TypeEnseignement_Select = Select(TypeEnseignement)
@@ -84,8 +85,8 @@ class Absence:
                                     date = self.driver.find_element(By.ID, "Jour")
                                     date.send_keys(Keys.CONTROL + "a")
                                     date.send_keys(Keys.DELETE)
-                                    date.send_keys("23-10-2023")
-                                    searchBtn.click()
+                                    date.send_keys(self.dates[0])
+                                    self.searchBtn.click()
                                     try:
                                         WebDriverWait(self.driver, 3).until(
                                             EC.invisibility_of_element_located(
@@ -110,7 +111,6 @@ class Absence:
             i += 1
             cne = self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(i) + str(self.CNE_Xpath))
             name = self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(i) + str(self.nome_Xpath))
-            select_cause = Select(self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(i) + str(self.select_Xpath)))
 
             try:
                 week_absence_student = classe_list_absence[cne.text]
@@ -118,8 +118,7 @@ class Absence:
             except KeyError:
                 print_error(f'THIS CNE {cne.text} DOES NOT EXIST, THE NAME IS: {name.text}, CLASS: {classe_name}')
             else:
-                select_cause.select_by_value("2")
-                print(cne.text, name.text)
+
                 self.fill_absence_per_day(i,week_days_per_student)
 
         if classe_name == "1APIC-1":
@@ -127,20 +126,42 @@ class Absence:
         return
 
     def fill_absence_per_day(self,row_i, week_days_per_student):
+        j = 0
         for day in week_days_per_student:
-            for i in range(len(day)):
-                if day[i] == None:
-                    continue
-                elif str(day[i]) == "0":
-                    print("FUll day")
-                elif str(day[i]) == "x":
-                    print("absence at day")
-                else:
-                    print_error('WE CANNOT REGONIZE THE FILL OF THE CELL')
+            if str(day[0]) == "0":
+                print("full day")
+                select_cause = Select(self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.select_Xpath)))
+                select_cause.select_by_value("2")
+                checkbox = self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.h_Xpath) + str(5) + "]/input[1]")
+                checkbox.click()
+                print("checkbox clicked")
+                return
+            elif "x" in day:
+                select_cause = Select(self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.select_Xpath)))
+                select_cause.select_by_value("2")
+                for i in range(len(day)):
+                    if day[i] == None:
+                        continue
+                    if str(day[i]) == "x":
+                        print(day[i])
+                        if i < 4:
+                            checkbox = self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.h_Xpath) + str(6 + i) + "]/input[1]")
+                        else:
+                            checkbox = self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(
+                                self.h_Xpath) + str(8 + i) + "]/input[1]")
+                        checkbox.click()
+                    else:
+                        print_error('WE CANNOT REGONIZE THE FILL OF THE CELL')
+
+            j += 1
+            date = self.driver.find_element(By.ID, "Jour")
+            date.send_keys(Keys.CONTROL + "a")
+            date.send_keys(Keys.DELETE)
+            date.send_keys(self.dates[j])
+            self.searchBtn.click()
 
 
     def list_week_to_days(self, list_week):
-        print(list_week)
         index = 0
         week = []
         day = []
