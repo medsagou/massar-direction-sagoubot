@@ -141,7 +141,7 @@ class Read_Db:
 
 
 
-db = Read_Db()
+# db = Read_Db()
 # db.create_all_class_sheet()
 # add_value_to_sheet(worksheet=db.workbook_output["3ASCG-2"], cell="B11", value = "test")
 # db.workbook_output.save("db/Book13.xlsx")
@@ -149,6 +149,6 @@ db = Read_Db()
 # # db.get_data_from_xlsb()
 # # print(db.get_classes_list_from_df())
 #
-db.fill_all_class_sheets()
+# db.fill_all_class_sheets()
 
 
