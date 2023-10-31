@@ -1,12 +1,8 @@
-import sys
-import time
-from print_sagou import *
+from utilities.print_sagou import *
 import pandas as pd
 from io import StringIO
-from Menu import Menu
 
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 
 from selenium.webdriver.support.ui import WebDriverWait

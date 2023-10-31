@@ -1,8 +1,6 @@
-
-import string
-from Read_XLSB_File import Read_Db
+from utilities.Read_XLSB_File import Read_Db
 # import openpyxl
-from utilities import get_columns_for_two
+from utilities.utilities import get_columns_for_two
 
 class Scan_Absences(Read_Db):
 

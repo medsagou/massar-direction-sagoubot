@@ -7,20 +7,13 @@ Created on Wed Apr 26 22:49:39 2023
 import os
 import sys
 from dotenv import load_dotenv
-from print_sagou import *
-from ui import User_Interface
-from Class_Files import C_File
+from utilities.print_sagou import *
+from utilities.Class_Files import C_File
 
-import undetected_chromedriver_modified_sagou as ucg
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-
-import chromedriver_autoinstaller
-
-
 
 load_dotenv()  # loading the environment variables from the .env file
 
