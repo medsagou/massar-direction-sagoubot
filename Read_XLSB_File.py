@@ -1,10 +1,11 @@
 import pandas as pd
 import openpyxl
 from print_sagou import *
+from utilities import check_exist_file
 
 
 class Read_Db:
-    def __init__(self, input_file = "db/file_data.xlsb", output_file = "db/template.xlsx", df = "", to_fill_by_said = "db/Book10000.xlsx"):
+    def __init__(self, input_file = "db/file_data.xlsb", template_file = "db/template.xlsx", output_file = "db/absence.xlsx", df = ""):
         self.index = {0: "CLASS_StudentIndex",
                       1: "Niveau",
                       2: "class_name",
@@ -14,12 +15,13 @@ class Read_Db:
                       6: "prenom"}
         self.input_file = input_file
         self.output_file = output_file
+        self.template_file = template_file
         self.df = df
         self.init_cell = ["A"]
         self.start_col = 'A'
         self.end_col = 'C'
-        self.workbook_output = self.get_workbook(output_file)
-        self.to_fill_by_said = to_fill_by_said
+        # self.workbook_output = self.get_workbook(output_file)
+        self.workbook_output = ""
 
     def get_key(self, val):
 
@@ -77,10 +79,18 @@ class Read_Db:
     def get_sheet_names_workbout_output(self):
         return self.workbook_output.sheetnames
 
+
+
     def create_all_class_sheet(self):
-        class_in_sheet = self.get_sheet_names_workbout_output()
+        if check_exist_file(self.output_file):
+            class_in_sheet = self.get_sheet_names_workbout_output()
+            # with open(self.output_file, 'w') as f:
+            #     f.close()
+        else:
+            class_in_sheet = []
         classes_list = self.get_column_list_from_df(column_key=self.get_key("class_name"))
-        workbook = openpyxl.load_workbook(self.output_file)
+
+        workbook = openpyxl.load_workbook(self.template_file)
         source_sheet = workbook["BaseSheet"]
         for classe in classes_list:
             if classe in class_in_sheet:
@@ -99,8 +109,9 @@ class Read_Db:
         # already check above
         if str(self.df) == "":
             self.get_data_from_xlsb()
-        print_info("RESTARTING WORKSHEET")
-        self.restart_workbook_output()
+        # print_info("RESTARTING WORKSHEET")
+        # self.restart_workbook_output()
+        self.workbook_output = self.get_workbook(self.output_file)
         class_in_sheet = list(self.get_sheet_names_workbout_output())
         # print(class_in_sheet)
         for k in range(len(class_in_sheet)):
@@ -128,7 +139,9 @@ class Read_Db:
                     continue
             # add number of students
             self.add_value_to_sheet(worksheet=worksheet, cell="AO6", value=str(i))
-            self.workbook_output.save(self.to_fill_by_said)
+            # add class name
+            self.add_value_to_sheet(worksheet=worksheet, cell="D6", value=class_in_sheet[k])
+            self.workbook_output.save(self.output_file)
             # self.workbook_output.close()
         return
 

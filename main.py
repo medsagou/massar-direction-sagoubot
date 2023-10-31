@@ -1,3 +1,5 @@
+import sys
+
 from interaction import Massar_Direction_Sagou
 from list_reader import List_Reader
 from Absences import Absence
@@ -6,10 +8,6 @@ from Read_XLSB_File import Read_Db
 import os
 
 def main():
-    interaction_object = Massar_Direction_Sagou()
-    interaction_object.main_interaction()
-
-
     ui = User_Interface()
 
     # main menu
@@ -27,6 +25,8 @@ def main():
                 elif str(choice01) == "2":
                     choice02, choice02_value = ui.menu_valider()
                     if str(choice02) == "1":
+                        interaction_object = Massar_Direction_Sagou()
+                        interaction_object.main_interaction()
                         interaction_object.get_list_page()
                         absence = Absence(driver=interaction_object.driver)
                         absence.main_absence_loop()
@@ -36,21 +36,21 @@ def main():
                         break
                     elif str(choice02_value) == "Quitter":
                         ui.clear_screen()
-                        interaction_object.exit_program()
+                        sys.exit()
 
                 elif str(choice01_value) == "Retour":
                     ui.clear_screen()
                     break
                 elif str(choice01_value) == "Quitter":
                     ui.clear_screen()
-                    interaction_object.exit_program()
+                    sys.exit()
 
         elif str(main_choice_1_value) == "Retour":
             ui.clear_screen()
             break
         elif str(main_choice_1_value) == "Quitter":
             ui.clear_screen()
-            interaction_object.exit_program()
+            sys.exit()
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,7 @@
 import string
 from datetime import datetime, timedelta
 from print_sagou import *
+import os
 
 def get_columns_for_two(start_column = "", end_column = "", column_to_remove = ""):
     column_names = []
@@ -20,22 +21,24 @@ def get_columns_for_two(start_column = "", end_column = "", column_to_remove = "
 
 
 
-def get_date_list():
-    while True:
-        start_date_str = input("Entrer La date de depart (DD-MM-YYYY): ")
-        end_date_str = input("Entrer la date finale (DD-MM-YYYY): ")
-        start_date = datetime.strptime(start_date_str, '%d-%m-%Y')
-        end_date = datetime.strptime(end_date_str, '%d-%m-%Y')
-        date_list = []
-        current_date = start_date
-        while current_date <= end_date:
-            date_str = current_date.strftime('%d-%m-%Y')
-            date_list.append(date_str)
-            current_date += timedelta(days=1)
-        if len(date_list) != 6:
-            print_error("LES DATE QUI VOUS AVEZ INSERER N'EST PAS VALIDE")
-            continue
-        else:
-            return date_list
+def get_date_list(start_date_str, end_date_str):
+    start_date = datetime.strptime(start_date_str, '%d-%m-%Y')
+    end_date = datetime.strptime(end_date_str, '%d-%m-%Y')
+    date_list = []
+    current_date = start_date
+    while current_date <= end_date:
+        date_str = current_date.strftime('%d-%m-%Y')
+        date_list.append(date_str)
+        current_date += timedelta(days=1)
+    if len(date_list) != 6:
+        print_error("LES DATE QUI VOUS AVEZ INSERER N'EST PAS VALIDE")
+    else:
+        return date_list
+
+def check_exist_file(file_path):
+    if os.path.exists(file_path):
+        return True
+    else:
+        return False
 
 
