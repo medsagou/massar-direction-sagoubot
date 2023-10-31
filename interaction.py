@@ -7,8 +7,8 @@ Created on Wed Apr 26 22:49:39 2023
 import os
 import sys
 from dotenv import load_dotenv
-from utilities.print_sagou import *
-from utilities.Class_Files import C_File
+from print_sagou import *
+from Class_Files import C_File
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -117,34 +117,7 @@ class Massar_Direction_Sagou:
         else:
             return True
 
-    def get_classes_from_main_page(self):
-        main_xpath = '//*[@id="ClassesDiv"]/div[2]/div/table/tbody/tr'
-        try:
-            rows = self.driver.find_elements(By.XPATH, main_xpath)
-        except:
-            print_error("WE COULD NOT FIND YOUR CLASSES FROM THE MAIN PAGE")
-            return False
-        else:
-            if len(rows) != 0:
-                D = {}
-                for row in range(1 , len(rows) + 1):
-                    class_name = self.driver.find_element(By.XPATH, main_xpath + "[" + str(row) + "]/td[1]")
-                    etd_num = self.driver.find_element(By.XPATH, main_xpath + "[" + str(row) + "]/td[2]")
-                    D[str(class_name.text)] = int(etd_num.text.replace("+", ""))
 
-                #export to les_class-ed_num.txt
-                class_etd_File = C_File(file_name="db/les_class_etd_num.txt")
-                class_etd_File.dict_to_file(D)
-
-                #export to menu.txt
-                ch = "001"
-                for c, v in D.items():
-                    ch = str(ch) + ";" + str(c)
-
-                class_etd_to_menu = C_File(file_name="db/menu.txt")
-                class_etd_to_menu.str_to_fichier(ch)
-
-                return D
 
 
     def close_tab(self):

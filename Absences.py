@@ -1,6 +1,6 @@
-from utilities.print_sagou import *
+from print_sagou import *
 from scan_absence import Scan_Absences
-from utilities.utilities import get_date_list
+from utilities import get_date_list
 
 
 from selenium.webdriver.common.by import By

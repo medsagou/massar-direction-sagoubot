@@ -2,8 +2,8 @@ import sys
 
 from interaction import Massar_Direction_Sagou
 from Absences import Absence
-from utilities.ui import User_Interface
-from utilities.Read_XLSB_File import Read_Db
+from ui import User_Interface
+from Read_XLSB_File import Read_Db
 
 
 def main():

@@ -5,8 +5,8 @@ Created on Sat Feb  4 14:20:34 2023
 @author: sagou
 """
 
-from utilities.Class_Files import C_File
-from utilities.print_sagou import *
+from Class_Files import C_File
+from print_sagou import *
 
 
 class Menu:
