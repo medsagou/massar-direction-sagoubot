@@ -22,6 +22,7 @@ class Absence:
         self.h_Xpath = ']/td['
         self.dates = ""
         self.searchBtn = self.driver.find_element(By.CSS_SELECTOR, "#search > div > div > div > div.box-body > div.blocBtn > button")
+        self.saveBtnCssSelector = "#gridFrom > button"
 
     def get_list_page(self):
         try:
@@ -99,6 +100,7 @@ class Absence:
                                             continue
                                         else:
                                             self.fill_absence(classe_list_absence=classe_list_absence,class_name=Classe_option.text, day_index = l)
+                                            saveBtn = self.driver.find_elements(By.CSS_SELECTOR, "#gridFrom > button")
                                             print_info(f"CLASS {Classe_option.text} PASSED, Date {self.dates[l]}")
         return
 
