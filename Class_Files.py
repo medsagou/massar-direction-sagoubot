@@ -16,7 +16,7 @@ class C_Dossier():
     def __init__(self,sep=""):
        self.separateur=sep
     
-    def dossier_courant():
+    def dossier_courant(self):
         return os.getcwd()
 
     def existe_dossier(Chemin):
