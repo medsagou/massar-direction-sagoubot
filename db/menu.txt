@@ -1,0 +1,3 @@
+0;Absence par class
+01;La liste a remplir;Absence par class
+011;Valider
