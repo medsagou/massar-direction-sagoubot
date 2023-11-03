@@ -5,7 +5,7 @@ from utilities import check_exist_file
 
 
 class Read_Db:
-    def __init__(self, input_file = "db/file_data.xlsb", template_file = "db/template.xlsx", output_file = "db/absence.xlsx", df = ""):
+    def __init__(self, input_file = "data_to_manage/file_data.xlsb", template_file = "data_to_manage/template.xlsx", output_file = "data_to_manage/absence.xlsx", df = ""):
         self.index = {0: "CLASS_StudentIndex",
                       1: "Niveau",
                       2: "class_name",

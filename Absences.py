@@ -78,9 +78,11 @@ class Absence:
                                 if Classe_option.text != "":
                                     classe_absence = Scan_Absences(classe=Classe_option.text)
                                     classe_list_absence, start_date, end_date = classe_absence.get_absence_day_per_student()
-                                    self.dates = get_date_list(start_date_str=start_date, end_date_str=end_date)
+
                                     if classe_list_absence == False:
+                                        print_info(f"THE CLASS {Classe_option.text} NOT IN THE EXCEL FILE")
                                         continue
+                                    self.dates = get_date_list(start_date_str=start_date, end_date_str=end_date)
                                     Classe_Select.select_by_value(Classe_option.get_attribute("value"))
                                     for l in range(len(self.dates)):
                                         date = self.driver.find_element(By.ID, "Jour")
@@ -101,7 +103,19 @@ class Absence:
                                         else:
                                             self.fill_absence(classe_list_absence=classe_list_absence,class_name=Classe_option.text, day_index = l)
                                             saveBtn = self.driver.find_elements(By.CSS_SELECTOR, "#gridFrom > button")
-                                            print_info(f"CLASS {Classe_option.text} PASSED, Date {self.dates[l]}")
+                                            # saveBtn.click()
+                                            try:
+                                                WebDriverWait(self.driver, 3).until(
+                                                    EC.invisibility_of_element_located(
+                                                        (
+                                                            By.ID, "loadingDiv",
+                                                        )
+                                                    )
+                                                )
+                                            except:
+                                                pass
+                                            print_success(f"CLASS {Classe_option.text} PASSED, DATE {self.dates[l]}")
+
         return
 
     def fill_absence(self, classe_list_absence, class_name, day_index):
@@ -118,7 +132,7 @@ class Absence:
             except KeyError:
                 print_error(f'THIS CNE {cne.text} DOES NOT EXIST, THE NAME IS: {name.text}, CLASS: {class_name}')
             else:
-                print(day_index)
+                # print(day_index)
                 print(week_days_per_student)
                 self.fill_absence_per_day(i,week_days_per_student[day_index])
 
@@ -130,12 +144,11 @@ class Absence:
         j = 0
         print(day)
         if str(day[0]) == "0":
-            print("full day")
+            # print("FULL DAY")
             select_cause = Select(self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.select_Xpath)))
             select_cause.select_by_value("2")
             checkbox = self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.h_Xpath) + str(5) + "]/input[1]")
             checkbox.click()
-            print("checkbox clicked")
             return
         elif "x" in day:
             try:
@@ -147,12 +160,10 @@ class Absence:
                     )
                 )
             except:
-                print_error("PLEASE CHECK YOUR LOGIN INFORMATION AND TRY AGAIN.")
+                print_error("AN ERROR IN HTML SELECTION PLEASE TRY AGAIN.")
                 self.exit_program()
-            else:
-                print_success("WE HAVE SUCCESSFULLY LOGGED INTO YOUR ACCOUNT")
-                select_cause = Select(self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.select_Xpath)))
-                select_cause.select_by_value("2")
+            select_cause = Select(self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.select_Xpath)))
+            select_cause.select_by_value("2")
             for i in range(len(day)):
                 if day[i] == None:
                     continue
@@ -164,8 +175,6 @@ class Absence:
                         checkbox = self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(
                             self.h_Xpath) + str(8 + i) + "]/input[1]")
                     checkbox.click()
-                    # print("sleeping")
-                    # time.sleep(5)
                 else:
                     print_error('WE CANNOT REGONIZE THE FILL OF THE CELL')
 
