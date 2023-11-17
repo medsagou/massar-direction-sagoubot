@@ -2,10 +2,9 @@ import pandas as pd
 import openpyxl
 from print_sagou import *
 from utilities import check_exist_file
-
-
+import xlrd
 class Read_Db:
-    def __init__(self, input_file = "data_to_manage/file_data.xlsb", template_file = "data_to_manage/template.xlsx", output_file = "data_to_manage/absence.xlsx", df = ""):
+    def __init__(self, input_file = r"data_to_manage/file_data.xls", template_file = "data_to_manage/template.xlsx", output_file = "data_to_manage/absence.xlsx", df = ""):
         self.index = {0: "CLASS_StudentIndex",
                       1: "Niveau",
                       2: "class_name",
@@ -24,23 +23,44 @@ class Read_Db:
         self.workbook_output = ""
 
     def get_key(self, val):
-
         for key, value in self.index.items():
             if val == value:
                 return key
         return "key doesn't exist"
 
     def get_data_from_xlsb(self):
-
         xlsb_file = pd.ExcelFile(self.input_file)
         df = xlsb_file.parse('Feuil3', header=None)  #
-
         self.df = df
         return df
+    def get_data_from_xls(self):
+        xls = pd.ExcelFile(self.input_file)
+        sheet_names = xls.sheet_names
+        data = {}
+        for sheet_name in sheet_names:
+            df = pd.read_excel(self.input_file, sheet_name=sheet_name)
+            key_cell = df.iloc[10, 8]
+            data[key_cell] = df
+            self.df = data
+        return data
+
+    def get_data_from_xls(self):        # new data function
+        return xlrd.open_workbook(self.input_file)
+    def get_classes_name_from_xls(self):
+        workbook = self.get_data_from_xls()
+        classes = []
+        sheet_names = workbook.sheet_names()
+        for sheet_name in sheet_names:
+            sheet = workbook[sheet_name]
+            class_name = sheet.cell_value(10, 8)
+            print(class_name)
+            classes.append(class_name)
+        return classes
 
     def get_workbook(self, file_name):
         workbook = openpyxl.load_workbook(file_name)
         return workbook
+
 
     def get_workbook_sheet(self, workbook ,sheet):
         return workbook[sheet]
@@ -81,6 +101,7 @@ class Read_Db:
 
 
 
+
     def create_all_class_sheet(self):
         if check_exist_file(self.output_file):
             class_in_sheet = self.get_sheet_names_workbout_output()
@@ -88,10 +109,12 @@ class Read_Db:
             #     f.close()
         else:
             class_in_sheet = []
-        classes_list = self.get_column_list_from_df(column_key=self.get_key("class_name"))
+        # classes_list = self.get_column_list_from_df(column_key=self.get_key("class_name"))
 
         workbook = openpyxl.load_workbook(self.template_file)
         source_sheet = workbook["BaseSheet"]
+        classes_list = self.get_classes_name_from_xls()
+        print(classes_list)
         for classe in classes_list:
             if classe in class_in_sheet:
                 print_error(f"SHEET FOR {classe} ALREADY EXIST")
@@ -108,7 +131,7 @@ class Read_Db:
         self.create_all_class_sheet()
         # already check above
         if str(self.df) == "":
-            self.get_data_from_xlsb()
+            self.get_data_from_xls()
         # print_info("RESTARTING WORKSHEET")
         # self.restart_workbook_output()
         self.workbook_output = self.get_workbook(self.output_file)
@@ -148,7 +171,8 @@ class Read_Db:
 
 
 
-# db = Read_Db()
+db = Read_Db()
+data = db.fill_all_class_sheets()
 # db.create_all_class_sheet()
 # add_value_to_sheet(worksheet=db.workbook_output["3ASCG-2"], cell="B11", value = "test")
 # db.workbook_output.save("db/Book13.xlsx")
