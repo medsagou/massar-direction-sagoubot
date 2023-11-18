@@ -79,7 +79,7 @@ class Absence:
 
                                 if Classe_option.text != "":
                                     classe_absence = Scan_Absences(classe=Classe_option.text)
-                                    classe_list_absence, start_date, end_date = classe_absence.get_absence_day_per_student()
+                                    classe_list_absence, start_date, end_date = classe_absence.get_absence_day_per_student2()
 
                                     if classe_list_absence == False:
                                         print_info(f"THE CLASS {Classe_option.text} NOT IN THE EXCEL FILE")
@@ -87,6 +87,7 @@ class Absence:
                                     self.dates = get_date_list(start_date_str=start_date, end_date_str=end_date)
                                     Classe_Select.select_by_value(Classe_option.get_attribute("value"))
                                     for l in range(len(self.dates)):
+                                        print_success(f"WORKING ON CLASS {Classe_option.text}, DATE {self.dates[l]}...")
                                         date = self.driver.find_element(By.ID, "Jour")
                                         date.send_keys(Keys.CONTROL + "a")
                                         date.send_keys(Keys.DELETE)
@@ -122,9 +123,16 @@ class Absence:
                                                 self.driver.quit()
                                                 sys.exit()
                                             else:
-                                                saveBtn = self.driver.find_element(By.CSS_SELECTOR, "#gridFrom > button")
-                                                saveBtn.click()
-                                                print_info('SAVE BUTTON IS CLICKED')
+                                                try:
+                                                    WebDriverWait(self.driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#gridFrom > button")))
+                                                except:
+                                                    print_error('WE COULD NOT FIND THE SAVE BUTTON')
+                                                else:
+                                                    saveBtn = self.driver.find_element(By.CSS_SELECTOR, "#gridFrom > button")
+                                                    # saveBtn.click()
+                                                    self.driver.execute_script("arguments[0].click();", saveBtn)
+
+                                                    print_info('SAVE BUTTON IS CLICKED')
                                             try:
                                                 WebDriverWait(self.driver, 3).until(
                                                     EC.invisibility_of_element_located(
@@ -165,7 +173,8 @@ class Absence:
         return
 
     def fill_absence(self, classe_list_absence, class_name, day_index):
-
+        # print(classe_list_absence)
+        # print(class_name)
         # print(classe_list_absence)
         mytable = self.driver.find_element(By.XPATH, self.data_table_reduced_Xpath)
         i = 0
