@@ -21,7 +21,8 @@ class Scan_Absences(Read_Db):
         if self.classe in sheet_names:
             sheet = self.workbook[self.classe]
             start_row = 10
-            end_row = int(sheet[self.classe_numbers].value)
+            end_row = int(sheet[self.classe_numbers].value) + start_row
+            # print(end_row)
             area_values = {}
             start_date = sheet["T6"].value
             end_date = sheet["AE6"].value

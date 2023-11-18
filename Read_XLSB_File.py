@@ -125,7 +125,7 @@ class Read_Db:
             #     print_error(f"SHEET FOR {classe} ALREADY EXIST")
             #     continue
             # if not in college just skipit
-            if classe.split("-")[0][1:] not in ['APIC', 'ASCPEB', 'ASCG']:
+            if classe.split("-")[0][1:] not in ['APIC', 'ASCG']:
                 continue
             print_info(f"CREATE A SHEET FOR {classe} CLASS")
             if classe != "":
@@ -176,11 +176,12 @@ class Read_Db:
                         self.add_value_to_sheet(worksheet=worksheet, cell=chr(col) + str(9 + i), value=row[self.get_key("CNE")])
                     elif chr(col) == "C":
                         self.add_value_to_sheet(worksheet=worksheet, cell=chr(col) + str(9 + i),
-                                                value=str(row[self.get_key("nom")] + " " + str(row[self.get_key("prenom")])))
+                                                value=str(row[self.get_key("prenom")] + " " + str(row[self.get_key("nom")])))
+                    self.add_value_to_sheet(worksheet=worksheet, cell="BA" + str(9 + i), value=str(row[self.get_key("prenom")] + " " + str(row[self.get_key("nom")])))
                     if i > 49:
                         return
 
-                    index_student += 1
+                index_student += 1
 
 
             # add number of students

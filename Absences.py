@@ -1,3 +1,5 @@
+import sys
+
 from print_sagou import *
 from scan_absence import Scan_Absences
 from utilities import get_date_list
@@ -89,7 +91,15 @@ class Absence:
                                         date.send_keys(Keys.CONTROL + "a")
                                         date.send_keys(Keys.DELETE)
                                         date.send_keys(self.dates[l])
-                                        self.searchBtn.click()
+                                        try:
+                                            WebDriverWait(self.driver, 15).until(
+                                                EC.element_to_be_clickable((By.CSS_SELECTOR, '#search > div > div > div > div.box-body > div.blocBtn > button'))
+                                            )
+                                        except:
+                                            pass
+                                        else:
+                                            self.searchBtn = self.driver.find_element(By.CSS_SELECTOR, '#search > div > div > div > div.box-body > div.blocBtn > button')
+                                            self.searchBtn.click()
                                         try:
                                             WebDriverWait(self.driver, 3).until(
                                                 EC.invisibility_of_element_located(
@@ -101,9 +111,20 @@ class Absence:
                                         except:
                                             continue
                                         else:
+                                            print_info("FILLING THE ABSENCE...")
                                             self.fill_absence(classe_list_absence=classe_list_absence,class_name=Classe_option.text, day_index = l)
-                                            saveBtn = self.driver.find_elements(By.CSS_SELECTOR, "#gridFrom > button")
-                                            # saveBtn.click()
+                                            try:
+                                                WebDriverWait(self.driver, 30).until(
+                                                    EC.presence_of_element_located((By.CSS_SELECTOR,"#gridFrom > button"))
+                                                )
+                                            except:
+                                                print_error('WE COULD NOT FIND THE SAVE BUTTON ')
+                                                self.driver.quit()
+                                                sys.exit()
+                                            else:
+                                                saveBtn = self.driver.find_element(By.CSS_SELECTOR, "#gridFrom > button")
+                                                saveBtn.click()
+                                                print_info('SAVE BUTTON IS CLICKED')
                                             try:
                                                 WebDriverWait(self.driver, 3).until(
                                                     EC.invisibility_of_element_located(
@@ -114,11 +135,38 @@ class Absence:
                                                 )
                                             except:
                                                 pass
+                                            try:
+                                                WebDriverWait(self.driver, 10).until(
+                                                    EC.presence_of_element_located(
+                                                        (
+                                                            By.ID, "Model_msg_Btn",
+                                                        )
+                                                    )
+                                                )
+                                            except:
+                                                print_error('WE COULD NOT FIND THE CLOSE BUTTON')
+                                            else:
+                                                print_info('CLOSE BUTTON IS CLOSED')
+                                                close_btn = self.driver.find_element(By.ID, "Model_msg_Btn")
+                                                close_btn.click()
+                                            try:
+                                                WebDriverWait(self.driver, 3).until(
+                                                    EC.invisibility_of_element_located(
+                                                        (
+                                                            By.ID, "loadingDiv",
+                                                        )
+                                                    )
+                                                )
+                                            except:
+                                                pass
+
                                             print_success(f"CLASS {Classe_option.text} PASSED, DATE {self.dates[l]}")
 
         return
 
     def fill_absence(self, classe_list_absence, class_name, day_index):
+
+        # print(classe_list_absence)
         mytable = self.driver.find_element(By.XPATH, self.data_table_reduced_Xpath)
         i = 0
         for row in mytable.find_elements(By.CSS_SELECTOR, 'tr'):
@@ -133,7 +181,7 @@ class Absence:
                 print_error(f'THIS CNE {cne.text} DOES NOT EXIST, THE NAME IS: {name.text}, CLASS: {class_name}')
             else:
                 # print(day_index)
-                print(week_days_per_student)
+                # print(week_days_per_student)
                 self.fill_absence_per_day(i,week_days_per_student[day_index])
 
         # if classe_name == "1APIC-1":
@@ -142,7 +190,7 @@ class Absence:
 
     def fill_absence_per_day(self,row_i, day):
         j = 0
-        print(day)
+        # print(day)
         if str(day[0]) == "0":
             # print("FULL DAY")
             select_cause = Select(self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.select_Xpath)))
@@ -168,7 +216,7 @@ class Absence:
                 if day[i] == None:
                     continue
                 if str(day[i]) == "x":
-                    print(day[i])
+                    # print(day[i])
                     if i < 4:
                         checkbox = self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.h_Xpath) + str(6 + i) + "]/input[1]")
                     else:
