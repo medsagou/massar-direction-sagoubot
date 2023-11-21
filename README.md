@@ -1,6 +1,6 @@
 <div align="center">
 <h1 align="center">
-<img src="./logo_white.png" width="200" />
+<img src="./images/logo_white.png" width="200" />
 <br>MASSAR-DIRECTION-SAGOUBOT</h1>
 <h3>◦ By: MedSagou</h3>
 <h3>◦ Developed with the software and tools below.</h3>
