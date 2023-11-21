@@ -5,7 +5,7 @@ from tkinter import filedialog
 import time
 import os
 from PIL import Image, ImageTk
-
+from Class_Files import C_File, C_Dossier
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("green")  # Themes: "blue" (standard), "green", "dark-blue"
 
@@ -92,10 +92,10 @@ class App(customtkinter.CTk):
         self.data_entry_frame = customtkinter.CTkFrame(self.tabview.tab("Setup"))
         self.data_entry_frame.grid(sticky='nw',row=0, column=0, padx=5, pady=(20,0))
 
-        label_data_file = customtkinter.CTkLabel(self.data_entry_frame, text="Data File (.xls):")
-        label_data_file.grid(row=0, column=0, padx=(0, 5), pady=(15,0))
+        self.label_data_file = customtkinter.CTkLabel(self.data_entry_frame, text="Data File (.xls):", text_color="gray90")
+        self.label_data_file.grid(row=0, column=0, padx=(0, 5), pady=(15,0))
 
-        self.entry_path = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="C:\\Your\\Path\\Here.xls", validate='focusout', validatecommand=((), '%P'),
+        self.entry_path = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="C:\\", validate='focusout', validatecommand=((), '%P'),
                                                  width=250)
         self.entry_path.grid(row=0, column=1, padx=(100, 5), pady=(15,0))
 
@@ -103,14 +103,13 @@ class App(customtkinter.CTk):
                                                      width=50)
         self.browse_button.grid(row=0, column=2, padx=(0, 5), pady=(15,0))
 
-        label_template_entry = customtkinter.CTkLabel(self.data_entry_frame, text="Template file (.xlsx):")
-        label_template_entry.grid(row=1, column=0, padx=(0, 5), pady=(15,0))
+        self.label_template_entry = customtkinter.CTkLabel(self.data_entry_frame, text="Template file (.xlsx):")
+        self.label_template_entry.grid(row=1, column=0, padx=(0, 5), pady=(15,0))
 
-        self.entry_path2 = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="C:\\Your\\Path\\Here.xlsx", validate='focusout',
-                                                  validatecommand=((), '%P'), width=250)
+        self.entry_path2 = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="C:\\", validate='focusout', width=250)
         self.entry_path2.grid(row=1, column=1, padx=(100, 5), pady=(15,0))
 
-        self.browse_button2 = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browse_path,
+        self.browse_button2 = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browse_path2,
                                                       width=50)
         self.browse_button2.grid(row=1, column=2, padx=(0, 5), pady=(15,0))
 
@@ -132,12 +131,13 @@ class App(customtkinter.CTk):
         self.output_location_frame = customtkinter.CTkFrame(self.tabview.tab("Output Location"), height=200)
         self.output_location_frame.grid(sticky='nw', row=0, column=0, padx=5, pady=(20, 0))
 
-        label_data_file = customtkinter.CTkLabel(self.output_location_frame, text="Output Folder")
-        label_data_file.grid(row=0, column=0, padx=(0, 5), pady=(15, 0))
+        self.label_ouput_folder = customtkinter.CTkLabel(self.output_location_frame, text="Output Folder")
+        self.label_ouput_folder.grid(row=0, column=0, padx=(0, 5), pady=(15, 0))
 
-        self.ouput_path = customtkinter.CTkEntry(self.output_location_frame, placeholder_text="C:\\Your\\Path\\",
-                                                 validate='focusout', validatecommand=((), '%P'),
+        self.ouput_path = customtkinter.CTkEntry(self.output_location_frame, placeholder_text=os.path.join(os.path.expanduser('~'), 'Documents'),
+                                                 validate='focusout',
                                                  width=250)
+        self.ouput_path.insert("0",str(os.path.join(os.path.expanduser('~'), 'Documents')))
         self.ouput_path.grid(row=0, column=1, padx=(100, 5), pady=(15, 0))
 
         self.browse_button = customtkinter.CTkButton(self.output_location_frame, text="Browse", command=self.browse_folder, width=50)
@@ -177,12 +177,51 @@ class App(customtkinter.CTk):
 
 
 
+
+    def label_data_file_error(self):
+        current_text = self.label_data_file.cget("text")
+        self.label_data_file.configure(text=current_text.replace("*", "") + "*", text_color="red")
+        return
+    def label_template_file_error(self):
+        current_text = self.label_template_entry.cget("text")
+        self.label_template_entry.configure(text=current_text.replace("*", "") + "*", text_color="red")
+        return
+
+    def reset_error1(self):
+        current_text = self.label_data_file.cget("text")
+        self.label_data_file.configure(text=current_text.replace("*", ""), text_color="gray90")
+        return
+
+    def reset_error2(self):
+        current_text = self.label_template_entry.cget("text")
+        self.label_template_entry.configure(text=current_text.replace("*", ""), text_color="gray90")
+        return
+
+    def directory_error(self):
+        current_text = self.label_ouput_folder.cget("text")
+        self.label_ouput_folder.configure(text=current_text + "*", text_color="red")
+        return
+    def reset_error3(self):
+        current_text = self.label_ouput_folder.cget("text")
+        self.label_ouput_folder.configure(text=current_text.replace("*", ""), text_color="gray90")
+        return
+
+
     def go_to_output_location(self):
         tab = self.tabview.get()
         if tab == "Setup":
-            self.tabview.set("Output Location")
+            if self.validate_path(self.entry_path) and self.validate_path(self.entry_path2):
+                self.tabview.set("Output Location")
+            else:
+                if not self.validate_path(self.entry_path):
+                    self.label_data_file_error()
+                if not self.validate_path(self.entry_path2):
+                    self.label_template_file_error()
         if tab == "Output Location":
-            self.tabview.set("Review & Submit")
+            if self.validate_dir(self.ouput_path):
+                self.tabview.set("Review & Submit")
+            else:
+                self.directory_error()
         return
 
     def browse_path(self):
@@ -190,22 +229,53 @@ class App(customtkinter.CTk):
             ("Text files", "*.xls"),  # Display only .txt files
             ("All files", "*.*")  # Display all files
         )
-        path = filedialog.askopenfilename(filetypes=filetypes)
+        path = filedialog.askopenfilename(filetypes=filetypes, initialdir=os.path.join(os.path.expanduser('~'), 'Documents'))
+        if path == "":
+            return
         self.entry_path.delete(0, tk.END)  # Clear the entry
         self.entry_path.insert(0, path)
+        file = C_File(file_name=path)
+        if file.existe_fichier():
+            self.reset_error1()
+
+    def browse_path2(self):
+        filetypes = (
+            ("Text files", "*.xlsx"),  # Display only .txt files
+            ("All files", "*.*")  # Display all files
+        )
+        path = filedialog.askopenfilename(filetypes=filetypes, initialdir=os.path.join(os.path.expanduser('~'), 'Documents'))
+        if path == "":
+            return
+        self.entry_path2.delete(0, tk.END)  # Clear the entry
+        self.entry_path2.insert(0, path)
+        file = C_File(file_name=path)
+        if file.existe_fichier():
+            self.reset_error2()
 
     def browse_folder(self):
-        path = filedialog.askdirectory()
+        path = filedialog.askdirectory(initialdir=os.path.join(os.path.expanduser('~'), 'Documents'))
+        if path == "":
+            return
         self.ouput_path.delete(0, tk.END)
         self.ouput_path.insert(0, path)
+        dir = C_Dossier()
+        if dir.existe_dossier(Chemin=path):
+            self.reset_error3()
         return
 
 
     # Function to validate the path entry
-    def validate_path(entry):
-        # You can add custom validation logic here
-        # For example, checking if the path exists or is valid
-        pass
+    def validate_path(self, path):
+        if path.get() == "":
+            return False
+        file = C_File(file_name=path.get())
+        return file.existe_fichier()
+
+    def validate_dir(self, path):
+        if path.get() == "":
+            return False
+        dir = C_Dossier()
+        return dir.existe_dossier(Chemin=path.get())
 
     def back(self):
         tab = self.tabview.get()

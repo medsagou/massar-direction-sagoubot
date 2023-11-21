@@ -19,18 +19,18 @@ class C_Dossier():
     def dossier_courant(self):
         return os.getcwd()
 
-    def existe_dossier(Chemin):
+    def existe_dossier(self,Chemin):
         if os.path.exists(Chemin) :
             return True
         else:
             return False 
         
-    def changer_dossier(Chemin):
+    def changer_dossier(self,Chemin):
         if C_Dossier.existe_dossier(Chemin):
             return(chdir(Chemin))
  
         
-    def creer_dossier(Chemin):
+    def creer_dossier(self,Chemin):
         if not C_Dossier.existe_dossier(Chemin):
              return(mkdir(Chemin))
          
