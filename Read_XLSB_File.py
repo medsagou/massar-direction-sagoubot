@@ -120,13 +120,14 @@ class Read_Db:
         workbook = openpyxl.load_workbook(self.template_file)
         source_sheet = workbook["BaseSheet"]
         classes_list = self.get_classes_name_from_xls()
+        print(classes_list)
         for classe in classes_list:
             # if classe in class_in_sheet:
             #     print_error(f"SHEET FOR {classe} ALREADY EXIST")
             #     continue
             # if not in college just skipit
-            if classe.split("-")[0][1:] not in ['APIC', 'ASCG']:
-                continue
+            # if classe.split("-")[0][1:] not in ['APIC', 'ASCG']:
+            #     continue
             print_info(f"CREATE A SHEET FOR {classe} CLASS")
             if classe != "":
                 self.create_copy_sheet(class_name=classe, workbook=workbook, source_sheet = source_sheet)

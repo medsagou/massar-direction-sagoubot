@@ -90,7 +90,7 @@ class App(customtkinter.CTk):
 
             # data entry
         self.data_entry_frame = customtkinter.CTkFrame(self.tabview.tab("Setup"))
-        self.data_entry_frame.grid(sticky='nw',row=0, column=0, padx=5, pady=(20,0))
+        self.data_entry_frame.grid(sticky='nw',row=0, column=0, padx=5, pady=(0,0))
 
         self.label_data_file = customtkinter.CTkLabel(self.data_entry_frame, text="Data File (.xls):", text_color="gray90")
         self.label_data_file.grid(row=0, column=0, padx=(0, 5), pady=(15,0))
@@ -109,16 +109,74 @@ class App(customtkinter.CTk):
         self.entry_path2 = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="C:\\", validate='focusout', width=250)
         self.entry_path2.grid(row=1, column=1, padx=(100, 5), pady=(15,0))
 
-        self.browse_button2 = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browse_path2,
-                                                      width=50)
+        self.browse_button2 = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browse_path2,width=50)
         self.browse_button2.grid(row=1, column=2, padx=(0, 5), pady=(15,0))
+
+
+        self.class_type_options_frame = customtkinter.CTkFrame(self.tabview.tab("Setup"), fg_color="gray25", height=100)
+        self.class_type_options_frame.grid(sticky="nsew", row=5, column=0, padx=10, pady=(20,20))
+        # self.error_label = customtkinter.CTkLabel(self.class_type_options_frame, text="You have to choose atlease one class", text_color="black")
+        # self.error_label.grid(row=0, column=0, padx=(0,0))
+        self.label_college = customtkinter.CTkLabel(self.class_type_options_frame, text="College Classes")
+        self.label_college.grid(row=0, column=0, padx=(0,0))
+        self.college_options = customtkinter.CTkSwitch(self.class_type_options_frame, text="College", state="switched", command=self.college_switch)
+        self.college_options.select()
+        self.college_options.grid(row=1, column=0, padx=(0,0))
+        self.college_inter = customtkinter.CTkCheckBox(self.class_type_options_frame, text="APIC", state="normal", checkbox_width=20, checkbox_height=20, command=self.reset_label_high_college)
+        self.college_inter.grid(row=2, column=0, padx=(20,0), pady=(10,0), sticky="n")
+
+        self.college_generale = customtkinter.CTkCheckBox(self.class_type_options_frame, text="ASCG", state="normal",
+                                                          checkbox_width=20, checkbox_height=20, command=self.reset_label_high_college)
+        self.college_generale.grid(row=3, column=0, padx=(20, 0), pady=(5,0), sticky="n")
+        self.college_aspeb = customtkinter.CTkCheckBox(self.class_type_options_frame, text="ASCPEB", state="normal",
+                                                          checkbox_width=20, checkbox_height=20, command=self.reset_label_high_college)
+        self.college_aspeb.grid(row=4, column=0, padx=(20, 0), pady=(5,5), sticky="n")
+
+
+        self.label_high_school = customtkinter.CTkLabel(self.class_type_options_frame, text="High School Classes", anchor="e")
+        self.label_high_school.grid(row=0, column=2, padx=(100,0))
+        self.high_school_options = customtkinter.CTkSwitch(self.class_type_options_frame, text="High School", state="switched",
+                                                       command=self.high_school_switch)
+        # self.high_school_options.select()
+        self.high_school_options.grid(row=1, column=2, padx=(80, 0))
+        self.TCS = customtkinter.CTkCheckBox(self.class_type_options_frame, text="TCS", state="disabled",
+                                                       checkbox_width=20, checkbox_height=20, command=self.reset_label_high_college)
+        self.TCS.grid(row=2, column=2, padx=(100, 0), pady=(5, 0), sticky="nsew")
+
+        self.TCSF = customtkinter.CTkCheckBox(self.class_type_options_frame, text="TCSF", state="disabled",
+                                             checkbox_width=20, checkbox_height=20, command=self.reset_label_high_college)
+        self.TCSF.grid(row=2, column=3, padx=(0, 0), pady=(5, 0), sticky="nsew")
+
+        self.TCLSH = customtkinter.CTkCheckBox(self.class_type_options_frame, text="TCLSH", state="disabled",
+                                                          checkbox_width=20, checkbox_height=20, command=self.reset_label_high_college)
+        self.TCLSH.grid(row=3, column=2, padx=(100, 0), pady=(5, 0), sticky="nsew")
+
+        self.BACSE = customtkinter.CTkCheckBox(self.class_type_options_frame, text="1BACSE", state="disabled",
+                                               checkbox_width=20, checkbox_height=20, command=self.reset_label_high_college)
+        self.BACSE.grid(row=3, column=3, padx=(0, 0), pady=(5, 0), sticky="nsew")
+        self.BACSH = customtkinter.CTkCheckBox(self.class_type_options_frame, text="1BACSH", state="disabled",
+                                               checkbox_width=20, checkbox_height=20, command=self.reset_label_high_college)
+        self.BACSH.grid(row=3, column=4, padx=(0, 0), pady=(5, 0), sticky="nsew")
+        self.BACSC = customtkinter.CTkCheckBox(self.class_type_options_frame, text="2BACSC", state="disabled",
+                                               checkbox_width=20, checkbox_height=20, command=self.reset_label_high_college)
+        self.BACSC.grid(row=3, column=5, padx=(0, 0), pady=(5, 0), sticky="nsew")
+        self.BACSH2 = customtkinter.CTkCheckBox(self.class_type_options_frame, text="2BACSH", state="disabled",
+                                               checkbox_width=20, checkbox_height=20, command=self.reset_label_high_college)
+        self.BACSH2.grid(row=2, column=4, padx=(0, 0), pady=(5, 0), sticky="nsew")
+        self.BACSVT = customtkinter.CTkCheckBox(self.class_type_options_frame, text="2BACSVT", state="disabled",
+                                                checkbox_width=20, checkbox_height=20, command=self.reset_label_high_college)
+        self.BACSVT.grid(row=2, column=5, padx=(0, 0), pady=(5, 0), sticky="nsew")
+
+
+
+
 
         self.submit = customtkinter.CTkButton(self.tabview.tab("Setup"), text="Next",
                                               command=self.go_to_output_location, width=50)
-        self.submit.grid(row=4, column=5, padx=10, pady=(5, 5))
+        self.submit.grid(row=6, column=5, padx=10, pady=(5, 5))
         self.return_btn = customtkinter.CTkButton(self.tabview.tab("Setup"), text="Exit", command=self.back,
                                                   width=50, fg_color="gray30")
-        self.return_btn.grid(row=4, column=4, padx=10, pady=(5, 5))
+        self.return_btn.grid(row=6, column=4, padx=10, pady=(5, 5))
 
 
 
@@ -178,6 +236,50 @@ class App(customtkinter.CTk):
 
 
 
+    def high_school_switch(self):
+        state = self.high_school_options.get()
+        options = [self.TCS,
+        self.TCSF,
+        self.TCLSH,
+        self.BACSC,
+        self.BACSH,
+        self.BACSE,
+        self.BACSVT,
+        self.BACSH2]
+        if state:
+            for option in options:
+                option.configure(state="normal")
+        else:
+            for option in options:
+                option.configure(state="disabled")
+        return
+    def college_switch(self):
+        state = self.college_options.get()
+        if state:
+            self.college_generale.configure(state="normal")
+            self.college_aspeb.configure(state="normal")
+            self.college_inter.configure(state="normal")
+        else:
+            self.college_generale.configure(state="disabled")
+            self.college_aspeb.configure(state="disabled")
+            self.college_inter.configure(state="disabled")
+
+
+    def college_label_error(self):
+        current_text = self.label_college.cget("text")
+        self.label_college.configure(text=current_text.replace("*", "") + "*", text_color="red")
+        return
+    def high_school_label_eroor(self):
+        current_text = self.label_high_school.cget("text")
+        self.label_high_school.configure(text=current_text.replace("*", "") + "*", text_color="red")
+        return
+
+    def reset_label_high_college(self):
+        current_text1 = self.label_college.cget("text")
+        current_text = self.label_high_school.cget("text")
+        self.label_high_school.configure(text=current_text.replace("*", ""), text_color="gray90")
+        self.label_college.configure(text=current_text1.replace("*", ""), text_color="gray90")
+
     def label_data_file_error(self):
         current_text = self.label_data_file.cget("text")
         self.label_data_file.configure(text=current_text.replace("*", "") + "*", text_color="red")
@@ -209,14 +311,64 @@ class App(customtkinter.CTk):
 
     def go_to_output_location(self):
         tab = self.tabview.get()
+        optionsHighSchool = [self.TCS,
+                   self.TCSF,
+                   self.TCLSH,
+                   self.BACSC,
+                   self.BACSH,
+                   self.BACSE,
+                   self.BACSVT,
+                   self.BACSH2]
+        optionsCollege = [
+            self.college_inter,
+            self.college_aspeb,
+            self.college_generale
+        ]
+        selected_classes = []
         if tab == "Setup":
-            if self.validate_path(self.entry_path) and self.validate_path(self.entry_path2):
-                self.tabview.set("Output Location")
+            # path validation
+            if self.validate_path(self.entry_path) and self.validate_path(self.entry_path2) and (self.college_options.get() or self.high_school_options.get()):
+                if self.high_school_options.get():
+                    for option in optionsHighSchool:
+                        if option.get():
+                            selected_classes.append((option.cget("text")))
+                if self.college_options.get():
+                    for option in optionsCollege:
+                        if option.get():
+                            selected_classes.append((option.cget("text")))
+                if len(selected_classes) == 0:
+                    self.college_label_error()
+                    self.high_school_label_eroor()
+                else:
+                    print(selected_classes) # pass the selected_classes to back-end program
+                    self.tabview.set("Output Location")
             else:
                 if not self.validate_path(self.entry_path):
                     self.label_data_file_error()
                 if not self.validate_path(self.entry_path2):
                     self.label_template_file_error()
+                if self.high_school_options.get():
+                    for option in optionsHighSchool:
+                        if option.get():
+                            selected_classes.append((option.cget("text")))
+                if self.college_options.get():
+                    for option in optionsCollege:
+                        if option.get():
+                            selected_classes.append((option.cget("text")))
+                if len(selected_classes) == 0:
+                    self.college_label_error()
+                    self.high_school_label_eroor()
+            # checkboxes validation
+            # if self.college_options.get() or self.high_school_options.get():
+            #     if self.high_school_options.get():
+            #         for option in optionsHighSchool:
+            #             if option.get():
+            #                 selected_classes.append((option.cget("text")))
+            #     if self.college_options.get():
+            #         for option in optionsCollege:
+            #             if option.get():
+            #                 selected_classes.append((option.cget("text")))
+
         if tab == "Output Location":
             if self.validate_dir(self.ouput_path):
                 self.tabview.set("Review & Submit")
