@@ -150,7 +150,7 @@ class App(customtkinter.CTk):
             if self.email_entry.get() == "":
                 self.error_label(self.label_email_entry)
                 self.entry_error(self.email_entry)
-            if self.password_entry.get() == "":
+            if len(self.password_entry.get()) < 8:
                 self.error_label(self.label_password_entry)
                 self.entry_error(self.password_entry)
             if not self.validate_path(self.entry_path_absence):
@@ -558,7 +558,7 @@ class App(customtkinter.CTk):
         self.password_entry = customtkinter.CTkEntry(self.data_entry_frame, show="*" ,placeholder_text="Your Password", width=250)
         self.password_entry.grid(row=1, column=1, padx=(100, 5), pady=(15, 0))
 
-        self.password_entry.bind("<KeyRelease>",  lambda _ : (self.reset_label(self.label_password_entry), self.entry_reset(self.password_entry)))
+        self.password_entry.bind("<KeyRelease>",  lambda _ : (self.reset_label(self.label_password_entry), self.entry_reset(self.password_entry)) if len(self.password_entry.get()) > 8 else (self.error_label(self.label_password_entry), self.entry_error(self.password_entry)))
 
 
         self.label_absence_data_file = customtkinter.CTkLabel(self.data_entry_frame, text="Absence File (.xlsx):",
@@ -593,6 +593,16 @@ class App(customtkinter.CTk):
         self.return_btn2 = customtkinter.CTkButton(self.tabview.tab("Setup"), text="Exit", command=self.back2,
                                                   width=50, fg_color="gray30")
         self.return_btn2.grid(row=6, column=4, padx=10, pady=(5, 5))
+
+
+        self.run_bot = customtkinter.CTkButton(self.tabview.tab("Review & Submit"), text="Run",
+                                               command=self.go_to_review2, width=50)
+        self.run_bot.grid(row=6, column=5, padx=10, pady=(5, 5))
+        self.return_btn3 = customtkinter.CTkButton(self.tabview.tab("Review & Submit"), text="Back", command=self.back2,
+                                                   width=50, fg_color="gray30")
+        self.return_btn3.grid(row=6, column=4, padx=10, pady=(5, 5))
+
+
 
     def about_us_button_event(self):
         self.select_frame_by_name("About us")
