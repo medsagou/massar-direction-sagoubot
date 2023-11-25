@@ -533,6 +533,7 @@ class App(customtkinter.CTk):
         test = self.fill_absence_menu.cget("fg_color")
         if test == ("gray75", "gray25"):
             return
+        self.generate_list_menu_button_event()
         self.select_frame_by_name("Fill Absence Bot")
         self.label_data_file.destroy()
         self.entry_path.destroy()
@@ -542,6 +543,7 @@ class App(customtkinter.CTk):
         self.browse_button.destroy()
         self.class_type_options_frame.destroy()
         self.tabview.delete("Output Location")
+        self.tabview.set("Setup")
         self.submit.destroy()
         self.return_btn.destroy()
 
