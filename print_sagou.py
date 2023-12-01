@@ -1,10 +1,25 @@
-def print_error(message):
+def print_error(message, console=""):
+    if console != "":
+        # console.configure(state="normal")
+        console.insert("end", "\n" + f"ERROR: {message}", "error")
+        console.see("end")
+        # console.configure(state="disabled")
     print(f"\x1B[31mERROR: {message}\x1B[0m")
 
-def print_success(message):
+def print_success(message, console=""):
+    if console != "":
+        # console.configure(state="normal")
+        console.insert("end", "\n" + f"SUCCESS: {message}", "successes")
+        console.see("end")
+        # console.configure(state="disabled")
     print(f"\x1B[32mNOTE: {message}\x1B[0m")
 
-def print_info(message):
+def print_info(message, console=""):
+    if console != "":
+        # console.configure(state="normal")
+        console.insert("end", "\n" + f"NOTE: {message}", "note")
+        console.see("end")
+        # console.configure(state="disabled")
     print(f"\x1B[34mNOTE: {message}\x1B[0m")
 
 

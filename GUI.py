@@ -8,6 +8,12 @@ from PIL import Image, ImageTk
 from validate_email import validate_email
 from Class_Files import C_File, C_Dossier
 
+import threading
+import concurrent.futures
+
+
+from Read_XLSB_File import Read_Db
+
 
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("green")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -52,15 +58,18 @@ class App(customtkinter.CTk):
 
         # self.logo_label = customtkinter.CTkLabel(self.sidebar_frame, text="SagouBot", font=customtkinter.CTkFont(size=40, weight="bold"))
         # self.logo_label.grid(row=1, column=0, padx=20, pady=(20, 10))
-
         self.generate_list_menu_button_event()
         # Console (Text area)
-        self.console_text = customtkinter.CTkTextbox(self, height=200, width=400)
+        self.console_text = customtkinter.CTkTextbox(self, height=200, width=400, fg_color="gray1")
         self.console_text.insert("0.0", "CONSOLE")
-        self.console_text.insert(F"{len('CONSOLE')}.0", "--------" * 28)
+        self.console_text.insert(F"{len('CONSOLE')}.0", "--------" * 28, "orange")
         self.console_text.configure(state="disabled")
-        self.console_text.grid(row=1, column=1, padx=(20, 20), pady=(5, 0), sticky="nsew")
+        self.console_text.grid(row=1, column=1, padx=(20, 20), pady=(5, 15), sticky="nsew")
+        self.console_text.tag_config("error", foreground="red")
+        self.console_text.tag_config("note", foreground="orange")
+        self.console_text.tag_config("successes", foreground="blue")
 
+        # self.generate_progress_bar()
         # Progress Bar
         # progress_bar = customtkinter.CTkProgressBar(self, mode='determinate')
         # progress_bar.grid(row=1, column=1, padx=(20, 20), pady=(5, 0), sticky="nsew")
@@ -180,6 +189,7 @@ class App(customtkinter.CTk):
             self.college_generale
         ]
         selected_classes = []
+        paths = C_File("data_to_manage/paths.txt")
         if tab == "Setup":
             # path validation
             if self.validate_path(self.entry_path) and self.validate_path(self.entry_path2) and (self.college_options.get() or self.high_school_options.get()):
@@ -195,8 +205,13 @@ class App(customtkinter.CTk):
                     self.college_label_error()
                     self.high_school_label_eroor()
                 else:
+                    self.selected_classes = selected_classes
                     print(selected_classes) # pass the selected_classes to back-end program
                     self.tabview.set("Output Location")
+                    L = paths.fichier_to_Liste()
+                    L[0] = "DATA"+"=" + self.entry_path.get() +"\n"
+                    L[1] = "TEMPLATE"+"="+self.entry_path2.get()+"\n"
+                    paths.Liste_to_Fichier(L)
             else:
                 if not self.validate_path(self.entry_path):
                     self.label_data_file_error()
@@ -227,6 +242,9 @@ class App(customtkinter.CTk):
         if tab == "Output Location":
             if self.validate_dir(self.ouput_path):
                 self.tabview.set("Review & Submit")
+                L = paths.fichier_to_Liste()
+                L[-1] = "DIR" + "=" + self.ouput_path.get()
+                paths.Liste_to_Fichier(L)
             else:
                 self.directory_error()
         return
@@ -236,11 +254,11 @@ class App(customtkinter.CTk):
             ("Text files", "*.xls"),  # Display only .txt files
             ("All files", "*.*")  # Display all files
         )
-        path = filedialog.askopenfilename(filetypes=filetypes, initialdir=os.path.join(os.path.expanduser('~'), 'Documents'))
+        path = filedialog.askopenfilename(filetypes=filetypes, initialdir=os.path.dirname(self.path["DATA"]) if self.path["DATA"] != "" else os.path.join(os.path.expanduser('~'), 'Documents'))
         if path == "":
             return
         self.entry_path.delete(0, tk.END)  # Clear the entry
-        self.entry_path.insert(0, path)
+        self.entry_path.insert(0, os.path.abspath(path))
         file = C_File(file_name=path)
         if file.existe_fichier():
             self.reset_error1()
@@ -250,11 +268,11 @@ class App(customtkinter.CTk):
             ("Text files", "*.xlsx"),  # Display only .txt files
             ("All files", "*.*")  # Display all files
         )
-        path = filedialog.askopenfilename(filetypes=filetypes, initialdir=os.path.join(os.path.expanduser('~'), 'Documents'))
+        path = filedialog.askopenfilename(filetypes=filetypes, initialdir=os.path.dirname(self.path["TEMPLATE"]) if self.path["TEMPLATE"] != "" else os.path.join(os.path.expanduser('~'), 'Documents'))
         if path == "":
             return
         self.entry_path2.delete(0, tk.END)  # Clear the entry
-        self.entry_path2.insert(0, path)
+        self.entry_path2.insert(0, os.path.abspath(path))
         file = C_File(file_name=path)
         if file.existe_fichier():
             self.reset_error2()
@@ -263,12 +281,11 @@ class App(customtkinter.CTk):
             ("Text files", "*.xlsx"),  # Display only .txt files
             ("All files", "*.*")  # Display all files
         )
-        path = filedialog.askopenfilename(filetypes=filetypes,
-                                          initialdir=os.path.join(os.path.expanduser('~'), 'Documents'))
+        path = filedialog.askopenfilename(filetypes=filetypes, initialdir=os.path.join(os.path.expanduser('~'), 'Documents'))
         if path == "":
             return
         self.entry_path_absence.delete(0, tk.END)  # Clear the entry
-        self.entry_path_absence.insert(0, path)
+        self.entry_path_absence.insert(0, os.path.abspath(path))
         file = C_File(file_name=path)
         if file.existe_fichier():
             self.reset_label(self.label_absence_data_file)
@@ -276,11 +293,11 @@ class App(customtkinter.CTk):
 
 
     def browse_folder(self):
-        path = filedialog.askdirectory(initialdir=os.path.join(os.path.expanduser('~'), 'Documents'))
+        path = filedialog.askdirectory(initialdir=self.path["DIR"] if self.path["DIR"] != "" else os.path.join(os.path.expanduser('~'), 'Documents'))
         if path == "":
             return
         self.ouput_path.delete(0, tk.END)
-        self.ouput_path.insert(0, path)
+        self.ouput_path.insert(0, os.path.abspath(path))
         dir = C_Dossier()
         if dir.existe_dossier(Chemin=path):
             self.reset_error3()
@@ -318,6 +335,10 @@ class App(customtkinter.CTk):
         self.fill_absence_menu.configure(fg_color=("gray75", "gray25") if name == "Fill Absence Bot" else "transparent")
         self.about_us_menu.configure(fg_color=("gray75", "gray25") if name == "About us" else "transparent")
 
+    def generate_progress_bar(self):
+        self.progressbar_1 = customtkinter.CTkProgressBar(self.sidebar_frame, mode="determinate")
+        self.progressbar_1.set(0)
+        self.progressbar_1.grid(row=6, column=0, padx=20, pady=20, sticky="ew")
 
     def generate_list_menu_button_event(self):
         self.generate_list_menu = customtkinter.CTkButton(self.sidebar_frame, corner_radius=0, height=40,
@@ -358,6 +379,16 @@ class App(customtkinter.CTk):
         self.tabview.tab("Setup").grid_columnconfigure(0, weight=1)
 
         # data entry
+        # check if file exist
+        paths = C_File(file_name="data_to_manage/paths.txt")
+        self.path={}
+        if paths.existe_fichier():
+            self.paths = paths.fichier_to_Liste()
+            for path in self.paths:
+                path_splited = path.split("=")
+                self.path[path_splited[0]]=path_splited[-1].strip()
+
+        # print(self.path)
         self.data_entry_frame = customtkinter.CTkFrame(self.tabview.tab("Setup"))
         self.data_entry_frame.grid(sticky='nw', row=0, column=0, padx=5, pady=(0, 0))
 
@@ -385,6 +416,10 @@ class App(customtkinter.CTk):
                                                       width=50)
         self.browse_button2.grid(row=1, column=2, padx=(0, 5), pady=(15, 0))
 
+        if self.path["DATA"] != "":
+            self.entry_path.insert(0, self.path["DATA"])
+        if self.path["TEMPLATE"] != "":
+            self.entry_path2.insert(0, self.path["TEMPLATE"])
         self.class_type_options_frame = customtkinter.CTkFrame(self.tabview.tab("Setup"), fg_color="gray25", height=100)
         self.class_type_options_frame.grid(sticky="nsew", row=5, column=0, padx=10, pady=(20, 20))
         # self.error_label = customtkinter.CTkLabel(self.class_type_options_frame, text="You have to choose atlease one class", text_color="black")
@@ -469,12 +504,11 @@ class App(customtkinter.CTk):
 
         self.label_ouput_folder = customtkinter.CTkLabel(self.output_location_frame, text="Output Folder")
         self.label_ouput_folder.grid(row=0, column=0, padx=(0, 5), pady=(15, 0))
-
         self.ouput_path = customtkinter.CTkEntry(self.output_location_frame,
-                                                 placeholder_text=os.path.join(os.path.expanduser('~'), 'Documents'),
+                                                 placeholder_text=self.path["DIR"] if self.path["DIR"] != "" else os.path.join(os.path.expanduser('~'), 'Documents'),
                                                  validate='focusout',
                                                  width=250)
-        self.ouput_path.insert("0", str(os.path.join(os.path.expanduser('~'), 'Documents')))
+        self.ouput_path.insert("0", str(self.path["DIR"] if self.path["DIR"] != "" else os.path.join(os.path.expanduser('~'), 'Documents')))
         self.ouput_path.grid(row=0, column=1, padx=(100, 5), pady=(15, 0))
 
         self.browse_button3 = customtkinter.CTkButton(self.output_location_frame, text="Browse",
@@ -492,12 +526,16 @@ class App(customtkinter.CTk):
         self.tabview.tab("Review & Submit").grid_rowconfigure(0, weight=1)
         self.tabview.tab("Review & Submit").grid_columnconfigure((0, 1, 2), weight=1)
         self.submit = customtkinter.CTkButton(self.tabview.tab("Review & Submit"), text="Submit",
-                                              command=self.go_to_output_location, width=50)
+                                              command=self.generate_absence_file, width=50)
         self.submit.grid(row=4, column=5, padx=10, pady=(5, 5))
         self.return_btn = customtkinter.CTkButton(self.tabview.tab("Review & Submit"), text="Back", command=self.back,
                                                   width=50, fg_color="gray30")
         self.return_btn.grid(row=4, column=4, padx=10, pady=(5, 5))
         self.select_frame_by_name("Generate Lists")
+
+
+
+
 
     def entry_error(self, entry):
         entry.configure(border_color="red")
@@ -604,12 +642,36 @@ class App(customtkinter.CTk):
                                                    width=50, fg_color="gray30")
         self.return_btn3.grid(row=6, column=4, padx=10, pady=(5, 5))
 
-
-
     def about_us_button_event(self):
         self.select_frame_by_name("About us")
 
 
+
+
+    # backend functions
+    def generate_absence_file(self):
+        self.generate_progress_bar()
+        self.submit.configure(state="disabled")
+        self.return_btn.configure(state="disabled")
+        self.console_text.configure(state="normal")
+        def run_fill_all_class_sheets():
+            reader = Read_Db(input_file=self.entry_path.get(),
+                             template_file=self.entry_path2.get(),
+                             output_file=str(self.ouput_path.get()) + "\\absence.xlsx",
+                             required_classes=self.selected_classes,
+                             progress_bar=self.progressbar_1,
+                             console=self.console_text)
+            reader.fill_all_class_sheets()
+            time.sleep(5)
+
+            self.submit.configure(state="normal")
+            self.return_btn.configure(state="normal")
+            self.progressbar_1.destroy()
+            self.console_text.configure(state="disabled")
+        thread = threading.Thread(target=run_fill_all_class_sheets)
+        thread.start()
+
+        return
 
 if __name__ == "__main__":
     app = App()

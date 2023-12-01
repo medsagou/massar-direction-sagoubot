@@ -127,10 +127,19 @@ class C_File():
     # Ajouter un ensemble d'éléments sous forme de liste
     def Liste_to_Fichier(self,Liste): # 'creer_Fichier_Avec_Liste_Elements(self,ListeElements)' Créer d'un fichier à partir d'une liste : chaque élément de la liste représente une ligne du fichier
         with open(self.nomFichier,'w') as F:   # Ouverture du fichier en mode écriture : à ce niveau si le fichier existe il va être écrasé
-            F.writelines(Liste)    
+            F.writelines(Liste)
+    def Liste_stript(self, L):
+        for i in range(len(L)):
+            L[i] = L[i].strip()
+        return L
 
     def str_to_fichier(self,string):
         with open(self.nomFichier,'a') as F:   # Ouverture du fichier en mode écriture : à ce niveau si le fichier existe il va être écrasé
+             F.write(string)
+             F.write("\n")
+        return
+    def str_to_fichier2(self,string):
+        with open(self.nomFichier,'w') as F:
              F.write(string)
              F.write("\n")
         return
@@ -143,7 +152,7 @@ class C_File():
                     F.write("\n")
             return True
         else:
-            print_error("WE HAD A PROBLEM WHILE SAVING YOUR DICT")
+            print_error("WE HAD A PROBLEM WHILE SAVING YOUR DICT", console=self.console)
              
     def Liste_to_str_to_Fichier(self,Liste_1): 
        Liste = self.Liste_to_Str1(Liste_1)
@@ -153,7 +162,7 @@ class C_File():
             F.writelines('\n')
     #____________________________________________________________________________________________________________________________________________________________
     # Lire le contenu d'un fichier et le retourne en le plaçant dans une liste
-    def Fichier_to_Liste(self):  # extration d'une liste depuis un fichier  : chaque ligne du fichier représente un élément de cette liste
+    def fichier_to_Liste(self):  # extration d'une liste depuis un fichier  : chaque ligne du fichier représente un élément de cette liste
             with open(self.nomFichier, 'r') as f:    # Ouverture du fichier en mode lecture.
                 return f.readlines()
     def Fichier_to_str(self):

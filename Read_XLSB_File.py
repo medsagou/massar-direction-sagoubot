@@ -5,7 +5,7 @@ from utilities import check_exist_file
 import xlrd
 import os
 class Read_Db:
-    def __init__(self, input_file = r"data_to_manage/file_data.xls", template_file = "data_to_manage/template.xlsx", output_file = "data_to_manage/absence.xlsx", df = ""):
+    def __init__(self, input_file = r"data_to_manage/file_data.xls", template_file = "data_to_manage/template.xlsx", output_file = "data_to_manage/absence.xlsx", df = "", required_classes=[], progress_bar="", console=""):
         self.index = {0: "CLASS_StudentIndex",
                       1: "Niveau",
                       2: "class_name",
@@ -22,6 +22,9 @@ class Read_Db:
         self.end_col = 'C'
         # self.workbook_output = self.get_workbook(output_file)
         self.workbook_output = ""
+        self.required_classes = required_classes
+        self.progress_bar = progress_bar
+        self.console = console
 
     def get_key(self, val):
         for key, value in self.index.items():
@@ -112,7 +115,7 @@ class Read_Db:
             # with open(self.output_file, 'w') as f:
             #     f.close()
             os.remove(self.output_file)
-            print_info("WE REMOVED THE OUTPUT FILE TO CREATE NEW ONE")
+            print_info("WE REMOVED THE OUTPUT FILE TO CREATE NEW ONE", console=self.console)
         # else:
         #     class_in_sheet = []
         # classes_list = self.get_column_list_from_df(column_key=self.get_key("class_name"))
@@ -126,9 +129,9 @@ class Read_Db:
             #     print_error(f"SHEET FOR {classe} ALREADY EXIST")
             #     continue
             # if not in college just skipit
-            # if classe.split("-")[0][1:] not in ['APIC', 'ASCG']:
-            #     continue
-            print_info(f"CREATE A SHEET FOR {classe} CLASS")
+            if classe.split("-")[0][1:] not in self.required_classes:
+                continue
+            print_info(f"CREATE A SHEET FOR {classe} CLASS", console=self.console)
             if classe != "":
                 self.create_copy_sheet(class_name=classe, workbook=workbook, source_sheet = source_sheet)
 
@@ -140,7 +143,7 @@ class Read_Db:
         self.create_all_class_sheet()
         # already check above
         if str(self.df) == "":
-            print_info("GETTING THE DATA...")
+            print_info("GETTING THE DATA...", console=self.console)
             self.get_data_from_xls()
         # print_info("RESTARTING WORKSHEET")
         # self.restart_workbook_output()
@@ -149,9 +152,10 @@ class Read_Db:
         # print(class_in_sheet)
         for k in range(len(class_in_sheet)):
             print(f"{k+1}/{len(class_in_sheet)}")
+            self.progress_bar.set((k+1)/len(class_in_sheet))
             worksheet = self.get_workbook_sheet(workbook = self.workbook_output, sheet=class_in_sheet[k])
             i = 0
-            print_info(f"WORKING ON {class_in_sheet[k]} CLASS DATA TO SHEET")
+            print_info(f"WORKING ON {class_in_sheet[k]} CLASS DATA TO SHEET", console=self.console)
             # column = db.df["3ASCG-5"].columns.tolist()
             #
             # for index, row in db.df["3ASCG-5"].iterrows():
@@ -191,6 +195,8 @@ class Read_Db:
             self.add_value_to_sheet(worksheet=worksheet, cell="D6", value=class_in_sheet[k])
             self.workbook_output.save(self.output_file)
             # self.workbook_output.close()
+        print_success("Your lists is generated successfully", console=self.console)
+        print_success(f"Your file path:  {self.output_file}", console=self.console)
         return
 
 
