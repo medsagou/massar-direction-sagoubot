@@ -134,7 +134,7 @@ class Massar_Direction_Sagou:
         print_info("EXITING THE PROGRAM -- GOODBYE --", console=self.console)
         self.driver.close()
         self.driver.quit()
-        sys.exit()
+        # sys.exit()
 
     def main_interaction(self):
 

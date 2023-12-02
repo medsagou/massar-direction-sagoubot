@@ -10,13 +10,15 @@ from Class_Files import C_File, C_Dossier
 from dotenv import set_key, load_dotenv
 
 import threading
-import concurrent.futures
+import logging
+
 
 
 from Read_XLSB_File import Read_Db
 from Absences import Absence
 
-
+logging.basicConfig(filename='app.log', level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("green")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -26,6 +28,10 @@ dirPath = os.path.dirname(os.path.realpath(__file__))
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        self.generate_list_menu = None
+        self.fill_absence_menu = None
+        self.try_again_generate = False
+        self.try_again_fill = False
 
         image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
 
@@ -66,7 +72,7 @@ class App(customtkinter.CTk):
         # Console (Text area)
         self.console_text = customtkinter.CTkTextbox(self, height=200, width=400, fg_color="gray1")
         self.console_text.insert("0.0", "CONSOLE")
-        self.console_text.insert(F"{len('CONSOLE')}.0", "--------" * 28, "orange")
+        self.console_text.insert(F"{len('CONSOLE')}.0", "--------" * 28)
         self.console_text.configure(state="disabled")
         self.console_text.grid(row=1, column=1, padx=(20, 20), pady=(5, 15), sticky="nsew")
         self.console_text.tag_config("error", foreground="red")
@@ -181,84 +187,95 @@ class App(customtkinter.CTk):
             set_key(dotenv_path=os.path.join(dirPath,".env"), key_to_set="EMAIL", value_to_set=self.email_entry.get())
             set_key(dotenv_path=os.path.join(dirPath,".env"), key_to_set="PASSWORD", value_to_set=self.password_entry.get())
             load_dotenv(dotenv_path=os.path.join(dirPath,".env"))
-            self.tabview.set("Review & Submit")
+            self.tabview_fill_bot.set("Review & Submit")
 
+            self.label_all_review2 = customtkinter.CTkTextbox(self.tabview_fill_bot.tab("Review & Submit"))
+            self.label_all_review2.grid(row=0, column=0, columnspan=6, sticky="nsew")
+            # self.label_all_review2.insert("1.0", text)
+            text = f"Email:"
+            text += " " * (30 - len("Email:"))
+            text += str(self.email_entry.get()) + "\n"
+            self.label_all_review2.insert("end", text)
+            text = "Absence Excel File:"
+            text += " " * (30 - len("Absence Excel File:"))
+            text += str(self.entry_path_absence.get())+ "\n"
+            self.label_all_review2.insert("end", text)
+            text = "Browser:"
+            text += " " * (30 - len("Browser:"))
+            if self.browser_type.get() == 2:
+                text += "FireFox"
+            else:
+                text += "Chrome"
+            self.label_all_review2.insert("end", text)
+            self.label_all_review2.configure(state="disabled", text_color="gray70")
 
         return
     def go_to_output_location(self):
-        tab = self.tabview.get()
-        optionsHighSchool = [self.TCS,
-                   self.TCSF,
-                   self.TCLSH,
-                   self.BACSC,
-                   self.BACSH,
-                   self.BACSE,
-                   self.BACSVT,
-                   self.BACSH2]
-        optionsCollege = [
-            self.college_inter,
-            self.college_aspeb,
-            self.college_generale
-        ]
-        selected_classes = []
-        paths = C_File("data_to_manage/paths.txt")
-        if tab == "Setup":
-            # path validation
-            if self.validate_path(self.entry_path) and self.validate_path(self.entry_path2) and (self.college_options.get() or self.high_school_options.get()):
-                if self.high_school_options.get():
-                    for option in optionsHighSchool:
-                        if option.get():
-                            selected_classes.append((option.cget("text")))
-                if self.college_options.get():
-                    for option in optionsCollege:
-                        if option.get():
-                            selected_classes.append((option.cget("text")))
-                if len(selected_classes) == 0:
-                    self.college_label_error()
-                    self.high_school_label_eroor()
+        if self.tabview_generate_lists.grid_info():
+            tabview = self.tabview_generate_lists
+            tab = tabview.get()
+            optionsHighSchool = [self.TCS,
+                                 self.TCSF,
+                                 self.TCLSH,
+                                 self.BACSC,
+                                 self.BACSH,
+                                 self.BACSE,
+                                 self.BACSVT,
+                                 self.BACSH2]
+            optionsCollege = [
+                self.college_inter,
+                self.college_aspeb,
+                self.college_generale
+            ]
+            selected_classes = []
+            paths = C_File("data_to_manage/paths.txt")
+            if tab == "Setup":
+                # path validation
+                if self.validate_path(self.entry_path) and self.validate_path(self.entry_path2) and (
+                        self.college_options.get() or self.high_school_options.get()):
+                    if self.high_school_options.get():
+                        for option in optionsHighSchool:
+                            if option.get():
+                                selected_classes.append((option.cget("text")))
+                    if self.college_options.get():
+                        for option in optionsCollege:
+                            if option.get():
+                                selected_classes.append((option.cget("text")))
+                    if len(selected_classes) == 0:
+                        self.college_label_error()
+                        self.high_school_label_eroor()
+                    else:
+                        self.selected_classes = selected_classes
+                        print(selected_classes)  # pass the selected_classes to back-end program
+                        self.tabview_generate_lists.set("Output Location")
+                        L = paths.fichier_to_Liste()
+                        L[0] = "DATA" + "=" + self.entry_path.get() + "\n"
+                        L[1] = "TEMPLATE" + "=" + self.entry_path2.get() + "\n"
+                        paths.Liste_to_Fichier(L)
                 else:
-                    self.selected_classes = selected_classes
-                    print(selected_classes) # pass the selected_classes to back-end program
-                    self.tabview.set("Output Location")
+                    if not self.validate_path(self.entry_path):
+                        self.label_data_file_error()
+                    if not self.validate_path(self.entry_path2):
+                        self.label_template_file_error()
+                    if self.high_school_options.get():
+                        for option in optionsHighSchool:
+                            if option.get():
+                                selected_classes.append((option.cget("text")))
+                    if self.college_options.get():
+                        for option in optionsCollege:
+                            if option.get():
+                                selected_classes.append((option.cget("text")))
+                    if len(selected_classes) == 0:
+                        self.college_label_error()
+                        self.high_school_label_eroor()
+            if tab == "Output Location":
+                if self.validate_dir(self.ouput_path):
+                    self.tabview_generate_lists.set("Review & Submit")
                     L = paths.fichier_to_Liste()
-                    L[0] = "DATA"+"=" + self.entry_path.get() +"\n"
-                    L[1] = "TEMPLATE"+"="+self.entry_path2.get()+"\n"
+                    L[-1] = "DIR" + "=" + self.ouput_path.get()
                     paths.Liste_to_Fichier(L)
-            else:
-                if not self.validate_path(self.entry_path):
-                    self.label_data_file_error()
-                if not self.validate_path(self.entry_path2):
-                    self.label_template_file_error()
-                if self.high_school_options.get():
-                    for option in optionsHighSchool:
-                        if option.get():
-                            selected_classes.append((option.cget("text")))
-                if self.college_options.get():
-                    for option in optionsCollege:
-                        if option.get():
-                            selected_classes.append((option.cget("text")))
-                if len(selected_classes) == 0:
-                    self.college_label_error()
-                    self.high_school_label_eroor()
-            # checkboxes validation
-            # if self.college_options.get() or self.high_school_options.get():
-            #     if self.high_school_options.get():
-            #         for option in optionsHighSchool:
-            #             if option.get():
-            #                 selected_classes.append((option.cget("text")))
-            #     if self.college_options.get():
-            #         for option in optionsCollege:
-            #             if option.get():
-            #                 selected_classes.append((option.cget("text")))
-
-        if tab == "Output Location":
-            if self.validate_dir(self.ouput_path):
-                self.tabview.set("Review & Submit")
-                L = paths.fichier_to_Liste()
-                L[-1] = "DIR" + "=" + self.ouput_path.get()
-                paths.Liste_to_Fichier(L)
-            else:
-                self.directory_error()
+                else:
+                    self.directory_error()
         return
 
     def browse_path(self):
@@ -356,197 +373,208 @@ class App(customtkinter.CTk):
         self.progressbar_1.grid(row=6, column=0, padx=20, pady=20, sticky="ew")
 
     def generate_list_menu_button_event(self):
-        self.generate_list_menu = customtkinter.CTkButton(self.sidebar_frame, corner_radius=0, height=40,
-                                                          border_spacing=10,
-                                                          text="Generate Lists",
-                                                          fg_color="transparent", text_color=("gray10", "gray90"),
-                                                          hover_color=("gray70", "gray30"), anchor="w",
-                                                          command=self.generate_list_menu_button_event)
-        self.generate_list_menu.grid(row=1, column=0, sticky="ew", pady=(20, 0))
+        if self.try_again_generate != False:
+            test = self.generate_list_menu.cget("fg_color")
+            if test == ("gray75", "gray25"):
+                return
+        if self.try_again_generate == False:
+            self.generate_list_menu = customtkinter.CTkButton(self.sidebar_frame, corner_radius=0, height=40,
+                                                              border_spacing=10,
+                                                              text="Generate Lists",
+                                                              fg_color="transparent", text_color=("gray10", "gray90"),
+                                                              hover_color=("gray70", "gray30"), anchor="w",
+                                                              command=self.generate_list_menu_button_event)
+            self.generate_list_menu.grid(row=1, column=0, sticky="ew", pady=(20, 0))
 
-        self.fill_absence_menu = customtkinter.CTkButton(self.sidebar_frame, corner_radius=0, height=40,
-                                                         border_spacing=10, text="Fill Absence Bot",
+            self.fill_absence_menu = customtkinter.CTkButton(self.sidebar_frame, corner_radius=0, height=40,
+                                                             border_spacing=10, text="Fill Absence Bot",
+                                                             fg_color="transparent", text_color=("gray10", "gray90"),
+                                                             hover_color=("gray70", "gray30"), anchor="w",
+                                                             command=self.fill_absence_button_event
+                                                             )
+            self.fill_absence_menu.grid(row=2, column=0, sticky="ew")
+
+            self.about_us_menu = customtkinter.CTkButton(self.sidebar_frame, corner_radius=0, height=40,
+                                                         border_spacing=10, text="About us",
                                                          fg_color="transparent", text_color=("gray10", "gray90"),
                                                          hover_color=("gray70", "gray30"), anchor="w",
-                                                         command=self.fill_absence_button_event
+                                                         command=self.about_us_button_event
                                                          )
-        self.fill_absence_menu.grid(row=2, column=0, sticky="ew")
+            self.about_us_menu.grid(row=3, column=0, sticky="ew")
+            # end of side bar
 
-        self.about_us_menu = customtkinter.CTkButton(self.sidebar_frame, corner_radius=0, height=40,
-                                                     border_spacing=10, text="About us",
-                                                     fg_color="transparent", text_color=("gray10", "gray90"),
-                                                     hover_color=("gray70", "gray30"), anchor="w",
-                                                     command=self.about_us_button_event
-                                                     )
-        self.about_us_menu.grid(row=3, column=0, sticky="ew")
-        # end of side bar
+            # generate lists page
+            self.tabview_generate_lists = customtkinter.CTkTabview(self, width=250, state='disabled', text_color_disabled='white',
+                                                    height=250)
+            self.tabview_generate_lists.grid(row=0, column=1, padx=(20, 20), pady=(5, 0), sticky="nsew")
+            self.tabview_generate_lists.add("Setup")
+            self.tabview_generate_lists.add("Output Location")
+            self.tabview_generate_lists.add("Review & Submit")
+            self.tabview_generate_lists.tab("Setup").grid_columnconfigure(0, weight=1)
+            # setup tab
+            self.tabview_generate_lists.tab("Setup").grid_rowconfigure(0, weight=1)
+            self.tabview_generate_lists.tab("Setup").grid_columnconfigure(0, weight=1)
 
-        # generate lists page
-        self.tabview = customtkinter.CTkTabview(self, width=250, state='disabled', text_color_disabled='white',
-                                                height=250)
-        self.tabview.grid(row=0, column=1, padx=(20, 20), pady=(5, 0), sticky="nsew")
-        self.tabview.add("Setup")
-        self.tabview.add("Output Location")
-        self.tabview.add("Review & Submit")
-        self.tabview.tab("Setup").grid_columnconfigure(0, weight=1)
-        # setup tab
-        self.tabview.tab("Setup").grid_rowconfigure(0, weight=1)
-        self.tabview.tab("Setup").grid_columnconfigure(0, weight=1)
+            # data entry
+            # check if file exist
+            paths = C_File(file_name="data_to_manage/paths.txt")
+            self.path={}
+            if paths.existe_fichier():
+                self.paths = paths.fichier_to_Liste()
+                for path in self.paths:
+                    path_splited = path.split("=")
+                    self.path[path_splited[0]]=path_splited[-1].strip()
 
-        # data entry
-        # check if file exist
-        paths = C_File(file_name="data_to_manage/paths.txt")
-        self.path={}
-        if paths.existe_fichier():
-            self.paths = paths.fichier_to_Liste()
-            for path in self.paths:
-                path_splited = path.split("=")
-                self.path[path_splited[0]]=path_splited[-1].strip()
+            # print(self.path)
+            self.data_entry_frame = customtkinter.CTkFrame(self.tabview_generate_lists.tab("Setup"))
+            self.data_entry_frame.grid(sticky='nw', row=0, column=0, padx=5, pady=(0, 0))
 
-        # print(self.path)
-        self.data_entry_frame = customtkinter.CTkFrame(self.tabview.tab("Setup"))
-        self.data_entry_frame.grid(sticky='nw', row=0, column=0, padx=5, pady=(0, 0))
+            self.label_data_file = customtkinter.CTkLabel(self.data_entry_frame, text="Data File (.xls):",
+                                                          text_color="gray90")
+            self.label_data_file.grid(row=0, column=0, padx=(0, 5), pady=(15, 0))
 
-        self.label_data_file = customtkinter.CTkLabel(self.data_entry_frame, text="Data File (.xls):",
-                                                      text_color="gray90")
-        self.label_data_file.grid(row=0, column=0, padx=(0, 5), pady=(15, 0))
+            self.entry_path = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="C:\\", validate='focusout',
+                                                     validatecommand=((), '%P'),
+                                                     width=250)
+            self.entry_path.grid(row=0, column=1, padx=(100, 5), pady=(15, 0))
 
-        self.entry_path = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="C:\\", validate='focusout',
-                                                 validatecommand=((), '%P'),
-                                                 width=250)
-        self.entry_path.grid(row=0, column=1, padx=(100, 5), pady=(15, 0))
+            self.browse_button = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browse_path,
+                                                         width=50)
+            self.browse_button.grid(row=0, column=2, padx=(0, 5), pady=(15, 0))
 
-        self.browse_button = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browse_path,
-                                                     width=50)
-        self.browse_button.grid(row=0, column=2, padx=(0, 5), pady=(15, 0))
+            self.label_template_entry = customtkinter.CTkLabel(self.data_entry_frame, text="Template file (.xlsx):")
+            self.label_template_entry.grid(row=1, column=0, padx=(0, 5), pady=(15, 0))
 
-        self.label_template_entry = customtkinter.CTkLabel(self.data_entry_frame, text="Template file (.xlsx):")
-        self.label_template_entry.grid(row=1, column=0, padx=(0, 5), pady=(15, 0))
+            self.entry_path2 = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="C:\\", validate='focusout',
+                                                      width=250)
+            self.entry_path2.grid(row=1, column=1, padx=(100, 5), pady=(15, 10))
 
-        self.entry_path2 = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="C:\\", validate='focusout',
-                                                  width=250)
-        self.entry_path2.grid(row=1, column=1, padx=(100, 5), pady=(15, 10))
+            self.browse_button2 = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browse_path2,
+                                                          width=50)
+            self.browse_button2.grid(row=1, column=2, padx=(0, 5), pady=(15, 10))
 
-        self.browse_button2 = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browse_path2,
-                                                      width=50)
-        self.browse_button2.grid(row=1, column=2, padx=(0, 5), pady=(15, 10))
+            if self.path["DATA"] != "":
+                self.entry_path.insert(0, self.path["DATA"])
+            if self.path["TEMPLATE"] != "":
+                self.entry_path2.insert(0, self.path["TEMPLATE"])
+            self.class_type_options_frame = customtkinter.CTkFrame(self.tabview_generate_lists.tab("Setup"), fg_color="gray25", height=100)
+            self.class_type_options_frame.grid(sticky="nsew", row=2, column=0, columnspan=6, padx=10, pady=(20, 20))
+            # self.error_label = customtkinter.CTkLabel(self.class_type_options_frame, text="You have to choose atlease one class", text_color="black")
+            # self.error_label.grid(row=0, column=0, padx=(0,0))
+            self.label_college = customtkinter.CTkLabel(self.class_type_options_frame, text="College Classes")
+            self.label_college.grid(row=0, column=0, padx=(0, 0))
+            self.college_options = customtkinter.CTkSwitch(self.class_type_options_frame, text="College", state="switched",
+                                                           command=self.college_switch)
+            self.college_options.select()
+            self.college_options.grid(row=1, column=0, padx=(0, 0))
+            self.college_inter = customtkinter.CTkCheckBox(self.class_type_options_frame, text="APIC", state="normal",
+                                                           checkbox_width=20, checkbox_height=20,
+                                                           command=self.reset_label_high_college)
+            self.college_inter.grid(row=2, column=0, padx=(20, 0), pady=(10, 0), sticky="n")
 
-        if self.path["DATA"] != "":
-            self.entry_path.insert(0, self.path["DATA"])
-        if self.path["TEMPLATE"] != "":
-            self.entry_path2.insert(0, self.path["TEMPLATE"])
-        self.class_type_options_frame = customtkinter.CTkFrame(self.tabview.tab("Setup"), fg_color="gray25", height=100)
-        self.class_type_options_frame.grid(sticky="nsew", row=5, column=0, padx=10, pady=(20, 20))
-        # self.error_label = customtkinter.CTkLabel(self.class_type_options_frame, text="You have to choose atlease one class", text_color="black")
-        # self.error_label.grid(row=0, column=0, padx=(0,0))
-        self.label_college = customtkinter.CTkLabel(self.class_type_options_frame, text="College Classes")
-        self.label_college.grid(row=0, column=0, padx=(0, 0))
-        self.college_options = customtkinter.CTkSwitch(self.class_type_options_frame, text="College", state="switched",
-                                                       command=self.college_switch)
-        self.college_options.select()
-        self.college_options.grid(row=1, column=0, padx=(0, 0))
-        self.college_inter = customtkinter.CTkCheckBox(self.class_type_options_frame, text="APIC", state="normal",
-                                                       checkbox_width=20, checkbox_height=20,
-                                                       command=self.reset_label_high_college)
-        self.college_inter.grid(row=2, column=0, padx=(20, 0), pady=(10, 0), sticky="n")
+            self.college_generale = customtkinter.CTkCheckBox(self.class_type_options_frame, text="ASCG", state="normal",
+                                                              checkbox_width=20, checkbox_height=20,
+                                                              command=self.reset_label_high_college)
+            self.college_generale.grid(row=2, column=1, padx=(0, 0), pady=(10, 0), sticky="n")
+            self.college_aspeb = customtkinter.CTkCheckBox(self.class_type_options_frame, text="ASCPEB", state="normal",
+                                                           checkbox_width=20, checkbox_height=20,
+                                                           command=self.reset_label_high_college)
+            self.college_aspeb.grid(row=3, column=0, padx=(20, 0), pady=(5, 5), sticky="n")
 
-        self.college_generale = customtkinter.CTkCheckBox(self.class_type_options_frame, text="ASCG", state="normal",
-                                                          checkbox_width=20, checkbox_height=20,
-                                                          command=self.reset_label_high_college)
-        self.college_generale.grid(row=3, column=0, padx=(20, 0), pady=(5, 0), sticky="n")
-        self.college_aspeb = customtkinter.CTkCheckBox(self.class_type_options_frame, text="ASCPEB", state="normal",
-                                                       checkbox_width=20, checkbox_height=20,
-                                                       command=self.reset_label_high_college)
-        self.college_aspeb.grid(row=4, column=0, padx=(20, 0), pady=(5, 5), sticky="n")
+            self.label_high_school = customtkinter.CTkLabel(self.class_type_options_frame, text="High School Classes",
+                                                            anchor="e")
+            self.label_high_school.grid(row=0, column=2, padx=(100, 0))
+            self.high_school_options = customtkinter.CTkSwitch(self.class_type_options_frame, text="High School",
+                                                               state="switched",
+                                                               command=self.high_school_switch)
+            # self.high_school_options.select()
+            self.high_school_options.grid(row=1, column=2, padx=(80, 0))
+            self.TCS = customtkinter.CTkCheckBox(self.class_type_options_frame, text="TCS", state="disabled",
+                                                 checkbox_width=20, checkbox_height=20,
+                                                 command=self.reset_label_high_college)
+            self.TCS.grid(row=2, column=2, padx=(100, 0), pady=(5, 0), sticky="nsew")
 
-        self.label_high_school = customtkinter.CTkLabel(self.class_type_options_frame, text="High School Classes",
-                                                        anchor="e")
-        self.label_high_school.grid(row=0, column=2, padx=(100, 0))
-        self.high_school_options = customtkinter.CTkSwitch(self.class_type_options_frame, text="High School",
-                                                           state="switched",
-                                                           command=self.high_school_switch)
-        # self.high_school_options.select()
-        self.high_school_options.grid(row=1, column=2, padx=(80, 0))
-        self.TCS = customtkinter.CTkCheckBox(self.class_type_options_frame, text="TCS", state="disabled",
-                                             checkbox_width=20, checkbox_height=20,
-                                             command=self.reset_label_high_college)
-        self.TCS.grid(row=2, column=2, padx=(100, 0), pady=(5, 0), sticky="nsew")
+            self.TCSF = customtkinter.CTkCheckBox(self.class_type_options_frame, text="TCSF", state="disabled",
+                                                  checkbox_width=20, checkbox_height=20,
+                                                  command=self.reset_label_high_college)
+            self.TCSF.grid(row=2, column=3, padx=(0, 0), pady=(5, 0), sticky="nsew")
 
-        self.TCSF = customtkinter.CTkCheckBox(self.class_type_options_frame, text="TCSF", state="disabled",
-                                              checkbox_width=20, checkbox_height=20,
-                                              command=self.reset_label_high_college)
-        self.TCSF.grid(row=2, column=3, padx=(0, 0), pady=(5, 0), sticky="nsew")
+            self.TCLSH = customtkinter.CTkCheckBox(self.class_type_options_frame, text="TCLSH", state="disabled",
+                                                   checkbox_width=20, checkbox_height=20,
+                                                   command=self.reset_label_high_college)
+            self.TCLSH.grid(row=3, column=2, padx=(100, 0), pady=(5, 5), sticky="nsew")
 
-        self.TCLSH = customtkinter.CTkCheckBox(self.class_type_options_frame, text="TCLSH", state="disabled",
-                                               checkbox_width=20, checkbox_height=20,
-                                               command=self.reset_label_high_college)
-        self.TCLSH.grid(row=3, column=2, padx=(100, 0), pady=(5, 0), sticky="nsew")
+            self.BACSE = customtkinter.CTkCheckBox(self.class_type_options_frame, text="1BACSE", state="disabled",
+                                                   checkbox_width=20, checkbox_height=20,
+                                                   command=self.reset_label_high_college)
+            self.BACSE.grid(row=3, column=3, padx=(0, 0), pady=(5, 5), sticky="nsew")
+            self.BACSH = customtkinter.CTkCheckBox(self.class_type_options_frame, text="1BACSH", state="disabled",
+                                                   checkbox_width=20, checkbox_height=20,
+                                                   command=self.reset_label_high_college)
+            self.BACSH.grid(row=3, column=4, padx=(0, 0), pady=(5, 5), sticky="nsew")
+            self.BACSC = customtkinter.CTkCheckBox(self.class_type_options_frame, text="2BACSC", state="disabled",
+                                                   checkbox_width=20, checkbox_height=20,
+                                                   command=self.reset_label_high_college)
+            self.BACSC.grid(row=3, column=5, padx=(0, 0), pady=(5, 5), sticky="nsew")
+            self.BACSH2 = customtkinter.CTkCheckBox(self.class_type_options_frame, text="2BACSH", state="disabled",
+                                                    checkbox_width=20, checkbox_height=20,
+                                                    command=self.reset_label_high_college)
+            self.BACSH2.grid(row=2, column=4, padx=(0, 0), pady=(5, 0), sticky="nsew")
+            self.BACSVT = customtkinter.CTkCheckBox(self.class_type_options_frame, text="2BACSVT", state="disabled",
+                                                    checkbox_width=20, checkbox_height=20,
+                                                    command=self.reset_label_high_college)
+            self.BACSVT.grid(row=2, column=5, padx=(0, 0), pady=(5, 0), sticky="nsew")
 
-        self.BACSE = customtkinter.CTkCheckBox(self.class_type_options_frame, text="1BACSE", state="disabled",
-                                               checkbox_width=20, checkbox_height=20,
-                                               command=self.reset_label_high_college)
-        self.BACSE.grid(row=3, column=3, padx=(0, 0), pady=(5, 0), sticky="nsew")
-        self.BACSH = customtkinter.CTkCheckBox(self.class_type_options_frame, text="1BACSH", state="disabled",
-                                               checkbox_width=20, checkbox_height=20,
-                                               command=self.reset_label_high_college)
-        self.BACSH.grid(row=3, column=4, padx=(0, 0), pady=(5, 0), sticky="nsew")
-        self.BACSC = customtkinter.CTkCheckBox(self.class_type_options_frame, text="2BACSC", state="disabled",
-                                               checkbox_width=20, checkbox_height=20,
-                                               command=self.reset_label_high_college)
-        self.BACSC.grid(row=3, column=5, padx=(0, 0), pady=(5, 0), sticky="nsew")
-        self.BACSH2 = customtkinter.CTkCheckBox(self.class_type_options_frame, text="2BACSH", state="disabled",
-                                                checkbox_width=20, checkbox_height=20,
-                                                command=self.reset_label_high_college)
-        self.BACSH2.grid(row=2, column=4, padx=(0, 0), pady=(5, 0), sticky="nsew")
-        self.BACSVT = customtkinter.CTkCheckBox(self.class_type_options_frame, text="2BACSVT", state="disabled",
-                                                checkbox_width=20, checkbox_height=20,
-                                                command=self.reset_label_high_college)
-        self.BACSVT.grid(row=2, column=5, padx=(0, 0), pady=(5, 0), sticky="nsew")
+            self.submit = customtkinter.CTkButton(self.tabview_generate_lists.tab("Setup"), text="Next",
+                                                  command=self.go_to_output_location, width=50)
+            self.submit.grid(row=6, column=5, padx=10, pady=(5, 5))
+            self.return_btn = customtkinter.CTkButton(self.tabview_generate_lists.tab("Setup"), text="Exit", command=self.back,
+                                                      width=50, fg_color="gray30")
+            self.return_btn.grid(row=6, column=4, padx=10, pady=(5, 5))
 
-        self.submit = customtkinter.CTkButton(self.tabview.tab("Setup"), text="Next",
-                                              command=self.go_to_output_location, width=50)
-        self.submit.grid(row=6, column=5, padx=10, pady=(5, 5))
-        self.return_btn = customtkinter.CTkButton(self.tabview.tab("Setup"), text="Exit", command=self.back,
-                                                  width=50, fg_color="gray30")
-        self.return_btn.grid(row=6, column=4, padx=10, pady=(5, 5))
+            # output location tab
+            self.tabview_generate_lists.tab("Output Location").grid_rowconfigure(0, weight=1)
+            self.tabview_generate_lists.tab("Output Location").grid_columnconfigure((0, 1, 2), weight=1)
 
-        # output location tab
-        self.tabview.tab("Output Location").grid_rowconfigure(0, weight=1)
-        self.tabview.tab("Output Location").grid_columnconfigure((0, 1, 2), weight=1)
+            self.output_location_frame = customtkinter.CTkFrame(self.tabview_generate_lists.tab("Output Location"), height=200)
+            self.output_location_frame.grid(sticky='nw', row=0, column=0, padx=5, pady=(20, 0))
 
-        self.output_location_frame = customtkinter.CTkFrame(self.tabview.tab("Output Location"), height=200)
-        self.output_location_frame.grid(sticky='nw', row=0, column=0, padx=5, pady=(20, 0))
+            self.label_ouput_folder = customtkinter.CTkLabel(self.output_location_frame, text="Output Folder")
+            self.label_ouput_folder.grid(row=0, column=0, padx=(0, 5), pady=(15, 0))
+            self.ouput_path = customtkinter.CTkEntry(self.output_location_frame,
+                                                     placeholder_text=self.path["DIR"] if self.path["DIR"] != "" else os.path.join(os.path.expanduser('~'), 'Documents'),
+                                                     validate='focusout',
+                                                     width=250)
+            self.ouput_path.insert("0", str(self.path["DIR"] if self.path["DIR"] != "" else os.path.join(os.path.expanduser('~'), 'Documents')))
+            self.ouput_path.grid(row=0, column=1, padx=(100, 5), pady=(15, 0))
 
-        self.label_ouput_folder = customtkinter.CTkLabel(self.output_location_frame, text="Output Folder")
-        self.label_ouput_folder.grid(row=0, column=0, padx=(0, 5), pady=(15, 0))
-        self.ouput_path = customtkinter.CTkEntry(self.output_location_frame,
-                                                 placeholder_text=self.path["DIR"] if self.path["DIR"] != "" else os.path.join(os.path.expanduser('~'), 'Documents'),
-                                                 validate='focusout',
-                                                 width=250)
-        self.ouput_path.insert("0", str(self.path["DIR"] if self.path["DIR"] != "" else os.path.join(os.path.expanduser('~'), 'Documents')))
-        self.ouput_path.grid(row=0, column=1, padx=(100, 5), pady=(15, 0))
+            self.browse_button3 = customtkinter.CTkButton(self.output_location_frame, text="Browse",
+                                                          command=self.browse_folder, width=50)
+            self.browse_button3.grid(row=0, column=2, padx=(0, 5), pady=(15, 0))
 
-        self.browse_button3 = customtkinter.CTkButton(self.output_location_frame, text="Browse",
-                                                      command=self.browse_folder, width=50)
-        self.browse_button3.grid(row=0, column=2, padx=(0, 5), pady=(15, 0))
+            self.submit2 = customtkinter.CTkButton(self.tabview_generate_lists.tab("Output Location"), text="Next",
+                                                  command=self.go_to_output_location, width=50)
+            self.submit2.grid(row=3, column=5, padx=10, pady=(5, 5))
+            self.return_btn2 = customtkinter.CTkButton(self.tabview_generate_lists.tab("Output Location"), text="Back", command=self.back,
+                                                      width=50, fg_color="gray30")
+            self.return_btn2.grid(row=3, column=4, padx=10, pady=(5, 5))
 
-        self.submit = customtkinter.CTkButton(self.tabview.tab("Output Location"), text="Next",
-                                              command=self.go_to_output_location, width=50)
-        self.submit.grid(row=4, column=5, padx=10, pady=(5, 5))
-        self.return_btn = customtkinter.CTkButton(self.tabview.tab("Output Location"), text="Back", command=self.back,
-                                                  width=50, fg_color="gray30")
-        self.return_btn.grid(row=4, column=4, padx=10, pady=(5, 5))
+            # review tab
+            self.tabview_generate_lists.tab("Review & Submit").grid_rowconfigure(0, weight=1)
+            self.tabview_generate_lists.tab("Review & Submit").grid_columnconfigure((0, 1, 2), weight=1)
+            self.submit3 = customtkinter.CTkButton(self.tabview_generate_lists.tab("Review & Submit"), text="Submit",
+                                                  command=self.generate_absence_file, width=50)
+            self.submit3.grid(row=4, column=5, padx=10, pady=(5, 5))
+            self.return_btn3 = customtkinter.CTkButton(self.tabview_generate_lists.tab("Review & Submit"), text="Back", command=self.back,
+                                                      width=50, fg_color="gray30")
+            self.return_btn3.grid(row=4, column=4, padx=10, pady=(5, 5))
+            self.select_frame_by_name("Generate Lists")
+            self.try_again_generate = True
+        else:
+            self.tabview_fill_bot.grid_forget()
+            self.tabview_generate_lists.grid(row=0, column=1, padx=(20, 20), pady=(5, 0), sticky="nsew")
+            self.select_frame_by_name("Generate Lists")
 
-        # review tab
-        self.tabview.tab("Review & Submit").grid_rowconfigure(0, weight=1)
-        self.tabview.tab("Review & Submit").grid_columnconfigure((0, 1, 2), weight=1)
-        self.submit = customtkinter.CTkButton(self.tabview.tab("Review & Submit"), text="Submit",
-                                              command=self.generate_absence_file, width=50)
-        self.submit.grid(row=4, column=5, padx=10, pady=(5, 5))
-        self.return_btn = customtkinter.CTkButton(self.tabview.tab("Review & Submit"), text="Back", command=self.back,
-                                                  width=50, fg_color="gray30")
-        self.return_btn.grid(row=4, column=4, padx=10, pady=(5, 5))
-        self.select_frame_by_name("Generate Lists")
 
 
 
@@ -586,82 +614,102 @@ class App(customtkinter.CTk):
         test = self.fill_absence_menu.cget("fg_color")
         if test == ("gray75", "gray25"):
             return
-        self.generate_list_menu_button_event()
-        self.select_frame_by_name("Fill Absence Bot")
-        self.label_data_file.destroy()
-        self.entry_path.destroy()
-        self.browse_button2.destroy()
-        self.label_template_entry.destroy()
-        self.entry_path2.destroy()
-        self.browse_button.destroy()
-        self.class_type_options_frame.destroy()
-        self.tabview.delete("Output Location")
-        self.tabview.set("Setup")
-        self.submit.destroy()
-        self.return_btn.destroy()
+        if self.try_again_fill == False:
+            self.tabview_fill_bot = customtkinter.CTkTabview(self, width=250, state='disabled',
+                                                                   text_color_disabled='white',
+                                                                   height=250)
+            self.tabview_fill_bot.grid(row=0, column=1, padx=(20, 20), pady=(5, 0), sticky="nsew")
+            self.tabview_fill_bot.add("Setup")
+            self.tabview_fill_bot.add("Review & Submit")
+            # setup tab
+            self.tabview_fill_bot.tab("Setup").grid_rowconfigure(0, weight=1)
+            self.tabview_fill_bot.tab("Setup").grid_columnconfigure(0, weight=1)
 
-        self.label_email_entry = customtkinter.CTkLabel(self.data_entry_frame, text="Email:", text_color="gray90")
-        self.label_email_entry.grid(row=0, column=0, padx=(0, 5), pady=(15, 0))
+            self.tabview_fill_bot.tab("Review & Submit").grid_rowconfigure(0, weight=1)
+            self.tabview_fill_bot.tab("Review & Submit").grid_columnconfigure((0, 1, 2), weight=1)
+            # self.generate_list_menu_button_event()
 
-        self.email_entry = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="email@taalim.ma", width=250)
-        self.email_entry.grid(row=0, column=1, padx=(100, 5), pady=(15, 0))
+            self.tabview_fill_bot.set("Setup")
+            # self.submit.destroy()
+            # self.return_btn.destroy()
+            self.data_entry_frame = customtkinter.CTkFrame(self.tabview_fill_bot.tab("Setup"))
+            self.data_entry_frame.grid(sticky='nw', row=0, column=0, padx=5, pady=(0, 0))
 
-        if self.path["EMAIL"] != "":
-            self.email_entry.insert(0, self.path["EMAIL"])
+            self.label_email_entry = customtkinter.CTkLabel(self.data_entry_frame, text="Email:", text_color="gray90")
+            self.label_email_entry.grid(row=0, column=0, padx=(0, 5), pady=(15, 0))
 
+            self.email_entry = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="email@taalim.ma", width=250)
+            self.email_entry.grid(row=0, column=1, padx=(100, 5), pady=(15, 0))
 
-        self.email_entry.bind("<KeyRelease>",  lambda _ : self.validate_email_entry())
-        self.label_password_entry = customtkinter.CTkLabel(self.data_entry_frame, text="Password:")
-        self.label_password_entry.grid(row=1, column=0, padx=(0, 5), pady=(15, 0))
-
-        self.password_entry = customtkinter.CTkEntry(self.data_entry_frame, show="*" ,placeholder_text="Your Password", width=250)
-        self.password_entry.grid(row=1, column=1, padx=(100, 5), pady=(15, 0))
-
-        self.password_entry.bind("<KeyRelease>",  lambda _ : (self.reset_label(self.label_password_entry), self.entry_reset(self.password_entry)) if len(self.password_entry.get()) > 8 else (self.error_label(self.label_password_entry), self.entry_error(self.password_entry)))
+            if self.path["EMAIL"] != "":
+                self.email_entry.insert(0, self.path["EMAIL"])
 
 
-        self.label_absence_data_file = customtkinter.CTkLabel(self.data_entry_frame, text="Absence File (.xlsx):",
-                                                      text_color="gray90")
-        self.label_absence_data_file.grid(row=2, column=0, padx=(0, 5), pady=(15, 0))
+            self.email_entry.bind("<KeyRelease>",  lambda _ : self.validate_email_entry())
+            self.label_password_entry = customtkinter.CTkLabel(self.data_entry_frame, text="Password:")
+            self.label_password_entry.grid(row=1, column=0, padx=(0, 5), pady=(15, 0))
 
-        self.entry_path_absence = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text=self.path["ABSENCE_FILE"] if self.path["ABSENCE_FILE"] != "" else "C://", validate='focusout',
-                                                 validatecommand=((), '%P'),
-                                                 width=250)
-        self.entry_path_absence.grid(row=2, column=1, padx=(100, 5), pady=(15, 0))
+            self.password_entry = customtkinter.CTkEntry(self.data_entry_frame, show="*" ,placeholder_text="Your Password", width=250)
+            self.password_entry.grid(row=1, column=1, padx=(100, 5), pady=(15, 0))
 
-        if self.path["ABSENCE_FILE"] != "":
-            self.entry_path_absence.insert(0, self.path["ABSENCE_FILE"])
-        self.browse_button_absence = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browser_path3,
-                                                     width=50)
-        self.browse_button_absence.grid(row=2, column=2, padx=(0, 5), pady=(15,0))
-        self.label_browser_chrome_firefox = customtkinter.CTkLabel(self.data_entry_frame, text="Browser:", text_color="gray90")
-        self.label_browser_chrome_firefox.grid(row=3, column=0, padx=(0, 5), pady=(15, 0))
-        self.browser_type = customtkinter.IntVar()
-        self.chrome_radio = customtkinter.CTkRadioButton(self.data_entry_frame, text="Chrome", variable=self.browser_type, value=1, state="disabled")
-        self.chrome_radio.grid(row=3, column=1, padx=(10, 5), pady=(15, 0))
-        self.firefox_radio = customtkinter.CTkRadioButton(self.data_entry_frame, text="Firefox", variable=self.browser_type, value=2)
-        self.firefox_radio.grid(row=3, column=2, padx=(10, 5), pady=(15,0))
-        self.firefox_radio.select()
-        self.label_terms = customtkinter.CTkLabel(self.data_entry_frame, text="Terms and conditions:",
-                                                                   text_color="gray90")
-        self.label_terms.grid(row=4, column=0, padx=(0, 5), pady=(20, 0))
-        self.check_terms_and_condition = customtkinter.CTkCheckBox(self.data_entry_frame, text="I accept the Terms and the Conditions", state="normal",checkbox_width=20, checkbox_height=20, command=self.check_terms_box)
-        self.check_terms_and_condition.grid(row=4, column=1, padx=(0, 0), pady=(20,0), sticky="ne")
-
-        self.submit2 = customtkinter.CTkButton(self.tabview.tab("Setup"), text="Next",
-                                              command=self.go_to_review2, width=50)
-        self.submit2.grid(row=6, column=5, padx=10, pady=(5, 5))
-        self.return_btn2 = customtkinter.CTkButton(self.tabview.tab("Setup"), text="Exit", command=self.back2,
-                                                  width=50, fg_color="gray30")
-        self.return_btn2.grid(row=6, column=4, padx=10, pady=(5, 5))
+            self.password_entry.bind("<KeyRelease>",  lambda _ : (self.reset_label(self.label_password_entry), self.entry_reset(self.password_entry)) if len(self.password_entry.get()) > 8 else (self.error_label(self.label_password_entry), self.entry_error(self.password_entry)))
 
 
-        self.run_bot = customtkinter.CTkButton(self.tabview.tab("Review & Submit"), text="Run",
-                                               command=self.run_bot, width=50)
-        self.run_bot.grid(row=6, column=5, padx=10, pady=(5, 5))
-        self.return_btn3 = customtkinter.CTkButton(self.tabview.tab("Review & Submit"), text="Back", command=self.back2,
-                                                   width=50, fg_color="gray30")
-        self.return_btn3.grid(row=6, column=4, padx=10, pady=(5, 5))
+            self.label_absence_data_file = customtkinter.CTkLabel(self.data_entry_frame, text="Absence File (.xlsx):",
+                                                          text_color="gray90")
+            self.label_absence_data_file.grid(row=2, column=0, padx=(0, 5), pady=(15, 0))
+
+            self.entry_path_absence = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text=self.path["ABSENCE_FILE"] if self.path["ABSENCE_FILE"] != "" else "C://", validate='focusout',
+                                                     validatecommand=((), '%P'),
+                                                     width=250)
+            self.entry_path_absence.grid(row=2, column=1, padx=(100, 5), pady=(15, 0))
+
+            if self.path["ABSENCE_FILE"] != "":
+                self.entry_path_absence.insert(0, self.path["ABSENCE_FILE"])
+            self.browse_button_absence = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browser_path3,
+                                                         width=50)
+            self.browse_button_absence.grid(row=2, column=2, padx=(0, 5), pady=(15,0))
+            self.label_browser_chrome_firefox = customtkinter.CTkLabel(self.data_entry_frame, text="Browser:", text_color="gray90")
+            self.label_browser_chrome_firefox.grid(row=3, column=0, padx=(0, 5), pady=(15, 0))
+            self.browser_type = customtkinter.IntVar()
+            self.chrome_radio = customtkinter.CTkRadioButton(self.data_entry_frame, text="Chrome", variable=self.browser_type, value=1, state="disabled")
+            self.chrome_radio.grid(row=3, column=1, padx=(10, 5), pady=(15, 0))
+            self.firefox_radio = customtkinter.CTkRadioButton(self.data_entry_frame, text="Firefox", variable=self.browser_type, value=2)
+            self.firefox_radio.grid(row=3, column=2, padx=(10, 5), pady=(15,0))
+            self.firefox_radio.select()
+            self.label_terms = customtkinter.CTkLabel(self.data_entry_frame, text="Terms and conditions:",
+                                                                       text_color="gray90")
+            self.label_terms.grid(row=4, column=0, padx=(0, 5), pady=(20, 0))
+            self.check_terms_and_condition = customtkinter.CTkCheckBox(self.data_entry_frame, text="I accept the Terms and the Conditions", state="normal",checkbox_width=20, checkbox_height=20, command=self.check_terms_box)
+            self.check_terms_and_condition.grid(row=4, column=1, padx=(0, 0), pady=(20,0), sticky="ne")
+
+            self.submit4 = customtkinter.CTkButton(self.tabview_fill_bot.tab("Setup"), text="Next",
+                                                  command=self.go_to_review2, width=50)
+            self.submit4.grid(row=6, column=5, padx=10, pady=(5, 5))
+            self.return_btn4 = customtkinter.CTkButton(self.tabview_fill_bot.tab("Setup"), text="Exit", command=self.back2,
+                                                      width=50, fg_color="gray30")
+            self.return_btn4.grid(row=6, column=4, padx=10, pady=(5, 5))
+
+
+            self.run_bot = customtkinter.CTkButton(self.tabview_fill_bot.tab("Review & Submit"), text="Run",
+                                                   command=self.run_bot_interaction, width=50)
+            self.run_bot.grid(row=6, column=5, padx=10, pady=(5, 5))
+            self.return_btn5 = customtkinter.CTkButton(self.tabview_fill_bot.tab("Review & Submit"), text="Back", command=self.back2,
+                                                       width=50, fg_color="gray30")
+            self.return_btn5.grid(row=6, column=4, padx=10, pady=(5, 5))
+            self.try_again_fill = True
+
+            self.select_frame_by_name("Fill Absence Bot")
+        else:
+            self.tabview_generate_lists.grid_forget()
+            self.tabview_fill_bot.grid(row=0, column=1, padx=(20, 20), pady=(5, 0), sticky="nsew")
+            self.select_frame_by_name("Fill Absence Bot")
+
+
+
+
+
+
 
     def about_us_button_event(self):
         self.select_frame_by_name("About us")
@@ -690,13 +738,14 @@ class App(customtkinter.CTk):
         return
 
 
-    def run_bot(self):
+    def run_bot_interaction(self):
         self.generate_progress_bar(determinate=False)
         self.console_text.configure(state="normal")
         self.run_bot.configure(state="disabled")
         self.return_btn3.configure(state="disabled")
 
         def run_fill_absence():
+
             # loading the class here because of the .env file not getting refreshed
             from interaction import Massar_Direction_Sagou
             interaction_object = Massar_Direction_Sagou(console=self.console_text)
