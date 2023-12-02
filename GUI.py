@@ -21,13 +21,15 @@ logging.basicConfig(filename='app.log', level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme("green")  # Themes: "blue" (standard), "green", "dark-blue"
+customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 dirPath = os.path.dirname(os.path.realpath(__file__))
 
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        self.tabview_generate_lists = None
+        self.tabview_fill_bot= None
         self.generate_list_menu = None
         self.fill_absence_menu = None
         self.try_again_generate = False
@@ -155,12 +157,12 @@ class App(customtkinter.CTk):
         return
 
     def directory_error(self):
-        current_text = self.label_ouput_folder.cget("text")
-        self.label_ouput_folder.configure(text=current_text + "*", text_color="red")
+        current_text = self.label_output_folder.cget("text")
+        self.label_output_folder.configure(text=current_text + "*", text_color="red")
         return
     def reset_error3(self):
-        current_text = self.label_ouput_folder.cget("text")
-        self.label_ouput_folder.configure(text=current_text.replace("*", ""), text_color="gray90")
+        current_text = self.label_output_folder.cget("text")
+        self.label_output_folder.configure(text=current_text.replace("*", ""), text_color="gray90")
         return
 
 
@@ -194,11 +196,11 @@ class App(customtkinter.CTk):
             # self.label_all_review2.insert("1.0", text)
             text = f"Email:"
             text += " " * (30 - len("Email:"))
-            text += str(self.email_entry.get()) + "\n"
+            text += str(self.email_entry.get()) + "\n\n"
             self.label_all_review2.insert("end", text)
             text = "Absence Excel File:"
             text += " " * (30 - len("Absence Excel File:"))
-            text += str(self.entry_path_absence.get())+ "\n"
+            text += str(self.entry_path_absence.get())+ "\n\n"
             self.label_all_review2.insert("end", text)
             text = "Browser:"
             text += " " * (30 - len("Browser:"))
@@ -269,11 +271,33 @@ class App(customtkinter.CTk):
                         self.college_label_error()
                         self.high_school_label_eroor()
             if tab == "Output Location":
-                if self.validate_dir(self.ouput_path):
+                if self.validate_dir(self.output_path):
                     self.tabview_generate_lists.set("Review & Submit")
                     L = paths.fichier_to_Liste()
-                    L[-1] = "DIR" + "=" + self.ouput_path.get()
+                    L[-1] = "DIR" + "=" + self.output_path.get()
                     paths.Liste_to_Fichier(L)
+
+                    self.label_all_review1 = customtkinter.CTkTextbox(self.tabview_generate_lists.tab("Review & Submit"))
+                    self.label_all_review1.grid(row=0, column=0, columnspan=6, sticky="nsew")
+                    # self.label_all_review2.insert("1.0", text)
+                    text = f"Data file path:"
+                    text += " " * (30 - len("Data file path:"))
+                    text += str(self.entry_path.get()) + "\n\n"
+                    self.label_all_review1.insert("end", text)
+                    text = "Template file path:"
+                    text += " " * (30 - len("Template file path:"))
+                    text += str(self.entry_path2.get()) + "\n\n"
+                    self.label_all_review1.insert("end", text)
+                    text = "Classes:"
+                    text += " " * (30 - len("Classes:"))
+                    for c in self.selected_classes:
+                        text = text + c + ",\t"
+                    self.label_all_review1.insert("end", text + "\n\n")
+                    text = "Output directory:"
+                    text += " " * (30 - len("Output directory:"))
+                    text += str(self.output_path.get()) + "\n\n"
+                    self.label_all_review1.insert("end", text)
+                    self.label_all_review1.configure(state="disabled", text_color="gray70")
                 else:
                     self.directory_error()
         return
@@ -325,8 +349,8 @@ class App(customtkinter.CTk):
         path = filedialog.askdirectory(initialdir=self.path["DIR"] if self.path["DIR"] != "" else os.path.join(os.path.expanduser('~'), 'Documents'))
         if path == "":
             return
-        self.ouput_path.delete(0, tk.END)
-        self.ouput_path.insert(0, os.path.abspath(path))
+        self.output_path.delete(0, tk.END)
+        self.output_path.insert(0, os.path.abspath(path))
         dir = C_Dossier()
         if dir.existe_dossier(Chemin=path):
             self.reset_error3()
@@ -347,15 +371,19 @@ class App(customtkinter.CTk):
         return dir.existe_dossier(Chemin=path.get())
 
     def back(self):
-        tab = self.tabview.get()
-        if tab == "Review & Submit":
-            self.tabview.set("Output Location")
-        if tab == "Output Location":
-            self.tabview.set("Setup")
+        if self.tabview_generate_lists.grid_info():
+            tab = self.tabview_generate_lists
+        else:
+            tab = self.tabview_fill_bot
+
+        if tab.get() == "Review & Submit":
+            tab.set("Output Location")
+        elif tab.get() == "Output Location":
+            tab.set("Setup")
         return
 
     def back2(self):
-        self.tabview.set("Setup")
+        self.tabview_fill_bot.set("Setup") if self.tabview_fill_bot.grid_info() else self.tabview_generate_lists.set("Setup")
         return
 
     def select_frame_by_name(self, name):
@@ -539,14 +567,14 @@ class App(customtkinter.CTk):
             self.output_location_frame = customtkinter.CTkFrame(self.tabview_generate_lists.tab("Output Location"), height=200)
             self.output_location_frame.grid(sticky='nw', row=0, column=0, padx=5, pady=(20, 0))
 
-            self.label_ouput_folder = customtkinter.CTkLabel(self.output_location_frame, text="Output Folder")
-            self.label_ouput_folder.grid(row=0, column=0, padx=(0, 5), pady=(15, 0))
-            self.ouput_path = customtkinter.CTkEntry(self.output_location_frame,
+            self.label_output_folder = customtkinter.CTkLabel(self.output_location_frame, text="Output Folder")
+            self.label_output_folder.grid(row=0, column=0, padx=(0, 5), pady=(15, 0))
+            self.output_path = customtkinter.CTkEntry(self.output_location_frame,
                                                      placeholder_text=self.path["DIR"] if self.path["DIR"] != "" else os.path.join(os.path.expanduser('~'), 'Documents'),
                                                      validate='focusout',
                                                      width=250)
-            self.ouput_path.insert("0", str(self.path["DIR"] if self.path["DIR"] != "" else os.path.join(os.path.expanduser('~'), 'Documents')))
-            self.ouput_path.grid(row=0, column=1, padx=(100, 5), pady=(15, 0))
+            self.output_path.insert("0", str(self.path["DIR"] if self.path["DIR"] != "" else os.path.join(os.path.expanduser('~'), 'Documents')))
+            self.output_path.grid(row=0, column=1, padx=(100, 5), pady=(15, 0))
 
             self.browse_button3 = customtkinter.CTkButton(self.output_location_frame, text="Browse",
                                                           command=self.browse_folder, width=50)
@@ -707,30 +735,26 @@ class App(customtkinter.CTk):
 
 
 
-
-
-
-
     def about_us_button_event(self):
         self.select_frame_by_name("About us")
 
     # backend functions
     def generate_absence_file(self):
         self.generate_progress_bar()
-        self.submit.configure(state="disabled")
-        self.return_btn.configure(state="disabled")
+        self.submit3.configure(state="disabled")
+        self.return_btn3.configure(state="disabled")
         self.console_text.configure(state="normal")
         def run_fill_all_class_sheets():
             reader = Read_Db(input_file=self.entry_path.get(),
                              template_file=self.entry_path2.get(),
-                             output_file=str(self.ouput_path.get()) + "\\absence.xlsx",
+                             output_file=str(self.output_path.get()) + "\\absence.xlsx",
                              required_classes=self.selected_classes,
                              progress_bar=self.progressbar_1,
                              console=self.console_text)
             reader.fill_all_class_sheets()
-            time.sleep(5)
-            self.submit.configure(state="normal")
-            self.return_btn.configure(state="normal")
+            time.sleep(3)
+            self.submit3.configure(state="normal")
+            self.return_btn3.configure(state="normal")
             self.progressbar_1.grid_forget()
             self.console_text.configure(state="disabled")
         thread = threading.Thread(target=run_fill_all_class_sheets)
@@ -742,8 +766,7 @@ class App(customtkinter.CTk):
         self.generate_progress_bar(determinate=False)
         self.console_text.configure(state="normal")
         self.run_bot.configure(state="disabled")
-        self.return_btn3.configure(state="disabled")
-
+        self.return_btn5.configure(state="disabled")
         def run_fill_absence():
 
             # loading the class here because of the .env file not getting refreshed
@@ -754,10 +777,10 @@ class App(customtkinter.CTk):
                 interaction_object.get_list_page()
                 absence = Absence(driver=interaction_object.driver, console=self.console_text)
                 absence.main_absence_loop()
-            time.sleep(5)
+            time.sleep(3)
             self.console_text.configure(state="disabled")
             self.run_bot.configure(state="normal")
-            self.return_btn3.configure(state="normal")
+            self.return_btn5.configure(state="normal")
             self.progressbar_1.grid_forget()
         thread = threading.Thread(target=run_fill_absence)
         thread.start()
