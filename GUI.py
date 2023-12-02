@@ -7,17 +7,21 @@ import os
 from PIL import Image, ImageTk
 from validate_email import validate_email
 from Class_Files import C_File, C_Dossier
+from dotenv import set_key, load_dotenv
 
 import threading
 import concurrent.futures
 
 
 from Read_XLSB_File import Read_Db
+from Absences import Absence
+
 
 
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("green")  # Themes: "blue" (standard), "green", "dark-blue"
 
+dirPath = os.path.dirname(os.path.realpath(__file__))
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -169,6 +173,14 @@ class App(customtkinter.CTk):
                 self.check_terms_and_condition.configure(border_color="red", text_color="red")
                 self.error_label(self.label_terms)
         else:
+            paths = C_File("data_to_manage/paths.txt")
+            L = paths.fichier_to_Liste()
+            L[3] = "ABSENCE_FILE" + "=" + self.entry_path_absence.get() +"\n"
+            L[4] = "EMAIL" + "=" + self.email_entry.get() +"\n"
+            paths.Liste_to_Fichier(L)
+            set_key(dotenv_path=os.path.join(dirPath,".env"), key_to_set="EMAIL", value_to_set=self.email_entry.get())
+            set_key(dotenv_path=os.path.join(dirPath,".env"), key_to_set="PASSWORD", value_to_set=self.password_entry.get())
+            load_dotenv(dotenv_path=os.path.join(dirPath,".env"))
             self.tabview.set("Review & Submit")
 
 
@@ -281,7 +293,7 @@ class App(customtkinter.CTk):
             ("Text files", "*.xlsx"),  # Display only .txt files
             ("All files", "*.*")  # Display all files
         )
-        path = filedialog.askopenfilename(filetypes=filetypes, initialdir=os.path.join(os.path.expanduser('~'), 'Documents'))
+        path = filedialog.askopenfilename(filetypes=filetypes, initialdir=os.path.dirname(self.path["ABSENCE_FILE"]) if self.path["TEMPLATE"] != "" else os.path.join(os.path.expanduser('~'), 'Documents'))
         if path == "":
             return
         self.entry_path_absence.delete(0, tk.END)  # Clear the entry
@@ -335,9 +347,12 @@ class App(customtkinter.CTk):
         self.fill_absence_menu.configure(fg_color=("gray75", "gray25") if name == "Fill Absence Bot" else "transparent")
         self.about_us_menu.configure(fg_color=("gray75", "gray25") if name == "About us" else "transparent")
 
-    def generate_progress_bar(self):
-        self.progressbar_1 = customtkinter.CTkProgressBar(self.sidebar_frame, mode="determinate")
-        self.progressbar_1.set(0)
+    def generate_progress_bar(self, determinate=True):
+        self.progressbar_1 = customtkinter.CTkProgressBar(self.sidebar_frame, mode="determinate" if determinate==True else "indeterminate")
+        if determinate:
+            self.progressbar_1.set(0)
+        else:
+            self.progressbar_1.start()
         self.progressbar_1.grid(row=6, column=0, padx=20, pady=20, sticky="ew")
 
     def generate_list_menu_button_event(self):
@@ -410,11 +425,11 @@ class App(customtkinter.CTk):
 
         self.entry_path2 = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="C:\\", validate='focusout',
                                                   width=250)
-        self.entry_path2.grid(row=1, column=1, padx=(100, 5), pady=(15, 0))
+        self.entry_path2.grid(row=1, column=1, padx=(100, 5), pady=(15, 10))
 
         self.browse_button2 = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browse_path2,
                                                       width=50)
-        self.browse_button2.grid(row=1, column=2, padx=(0, 5), pady=(15, 0))
+        self.browse_button2.grid(row=1, column=2, padx=(0, 5), pady=(15, 10))
 
         if self.path["DATA"] != "":
             self.entry_path.insert(0, self.path["DATA"])
@@ -591,6 +606,10 @@ class App(customtkinter.CTk):
         self.email_entry = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="email@taalim.ma", width=250)
         self.email_entry.grid(row=0, column=1, padx=(100, 5), pady=(15, 0))
 
+        if self.path["EMAIL"] != "":
+            self.email_entry.insert(0, self.path["EMAIL"])
+
+
         self.email_entry.bind("<KeyRelease>",  lambda _ : self.validate_email_entry())
         self.label_password_entry = customtkinter.CTkLabel(self.data_entry_frame, text="Password:")
         self.label_password_entry.grid(row=1, column=0, padx=(0, 5), pady=(15, 0))
@@ -605,18 +624,20 @@ class App(customtkinter.CTk):
                                                       text_color="gray90")
         self.label_absence_data_file.grid(row=2, column=0, padx=(0, 5), pady=(15, 0))
 
-        self.entry_path_absence = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text="C:\\", validate='focusout',
+        self.entry_path_absence = customtkinter.CTkEntry(self.data_entry_frame, placeholder_text=self.path["ABSENCE_FILE"] if self.path["ABSENCE_FILE"] != "" else "C://", validate='focusout',
                                                  validatecommand=((), '%P'),
                                                  width=250)
         self.entry_path_absence.grid(row=2, column=1, padx=(100, 5), pady=(15, 0))
+
+        if self.path["ABSENCE_FILE"] != "":
+            self.entry_path_absence.insert(0, self.path["ABSENCE_FILE"])
         self.browse_button_absence = customtkinter.CTkButton(self.data_entry_frame, text="Browse", command=self.browser_path3,
                                                      width=50)
         self.browse_button_absence.grid(row=2, column=2, padx=(0, 5), pady=(15,0))
-
         self.label_browser_chrome_firefox = customtkinter.CTkLabel(self.data_entry_frame, text="Browser:", text_color="gray90")
         self.label_browser_chrome_firefox.grid(row=3, column=0, padx=(0, 5), pady=(15, 0))
         self.browser_type = customtkinter.IntVar()
-        self.chrome_radio = customtkinter.CTkRadioButton(self.data_entry_frame, text="Chrome", variable=self.browser_type, value=1)
+        self.chrome_radio = customtkinter.CTkRadioButton(self.data_entry_frame, text="Chrome", variable=self.browser_type, value=1, state="disabled")
         self.chrome_radio.grid(row=3, column=1, padx=(10, 5), pady=(15, 0))
         self.firefox_radio = customtkinter.CTkRadioButton(self.data_entry_frame, text="Firefox", variable=self.browser_type, value=2)
         self.firefox_radio.grid(row=3, column=2, padx=(10, 5), pady=(15,0))
@@ -636,7 +657,7 @@ class App(customtkinter.CTk):
 
 
         self.run_bot = customtkinter.CTkButton(self.tabview.tab("Review & Submit"), text="Run",
-                                               command=self.go_to_review2, width=50)
+                                               command=self.run_bot, width=50)
         self.run_bot.grid(row=6, column=5, padx=10, pady=(5, 5))
         self.return_btn3 = customtkinter.CTkButton(self.tabview.tab("Review & Submit"), text="Back", command=self.back2,
                                                    width=50, fg_color="gray30")
@@ -644,9 +665,6 @@ class App(customtkinter.CTk):
 
     def about_us_button_event(self):
         self.select_frame_by_name("About us")
-
-
-
 
     # backend functions
     def generate_absence_file(self):
@@ -663,14 +681,37 @@ class App(customtkinter.CTk):
                              console=self.console_text)
             reader.fill_all_class_sheets()
             time.sleep(5)
-
             self.submit.configure(state="normal")
             self.return_btn.configure(state="normal")
-            self.progressbar_1.destroy()
+            self.progressbar_1.grid_forget()
             self.console_text.configure(state="disabled")
         thread = threading.Thread(target=run_fill_all_class_sheets)
         thread.start()
+        return
 
+
+    def run_bot(self):
+        self.generate_progress_bar(determinate=False)
+        self.console_text.configure(state="normal")
+        self.run_bot.configure(state="disabled")
+        self.return_btn3.configure(state="disabled")
+
+        def run_fill_absence():
+            # loading the class here because of the .env file not getting refreshed
+            from interaction import Massar_Direction_Sagou
+            interaction_object = Massar_Direction_Sagou(console=self.console_text)
+            driver_test = interaction_object.main_interaction()
+            if driver_test:
+                interaction_object.get_list_page()
+                absence = Absence(driver=interaction_object.driver, console=self.console_text)
+                absence.main_absence_loop()
+            time.sleep(5)
+            self.console_text.configure(state="disabled")
+            self.run_bot.configure(state="normal")
+            self.return_btn3.configure(state="normal")
+            self.progressbar_1.grid_forget()
+        thread = threading.Thread(target=run_fill_absence)
+        thread.start()
         return
 
 if __name__ == "__main__":

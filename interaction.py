@@ -22,8 +22,9 @@ load_dotenv()  # loading the environment variables from the .env file
 
 
 class Massar_Direction_Sagou:
-    def __init__(self, driver = ""):
-        self.driver=driver
+    def __init__(self, driver = "", console=""):
+        self.driver = console
+        self.console = console
         return
 
     def get_driver(self):
@@ -31,28 +32,33 @@ class Massar_Direction_Sagou:
         opt.add_argument("--start-maximized")
         # chromedriver_autoinstaller.install()
         # self.driver = webdriver.Firefox(options=opt)
-        self.driver = webdriver.Firefox()
-        self.driver.maximize_window()
-        print_success("DRIVER CONNECTED")
-        return
+        try:
+            self.driver = webdriver.Firefox()
+            self.driver.maximize_window()
+        except:
+            print_error("BROWSER OPENING ERROR, TRY TO DOWNLOAD AND INSTALL FIREFOX", console=self.console)
+            return False
+        else:
+            print_success("DRIVER CONNECTED", console=self.console)
+            return True
 
     def get_site(self):
         try:
             self.driver.get(os.getenv("OFFICIAL_SITE"))
         except:
-            print_error("WE CAN't OPEN THE BROWSER")
+            print_error("WE CAN't OPEN THE BROWSER", console=self.console)
             self.exit_program()
         else:
-            print_info("SITE OPENED")
+            print_info("SITE OPENED", console=self.console)
             return True
 
     def get_list_page(self):
         try:
             self.driver.get("https://massar.men.gov.ma/Evaluation/Absence/AbsenceJournaliereParClasse")
         except:
-            print_error("We Can't find the list page! Close the program and try again.")
+            print_error("We Can't find the list page! Close the program and try again.", console=self.console)
         else:
-            print_info("GETTING TO THE LIST PAGE")
+            print_info("GETTING TO THE LIST PAGE", console=self.console)
 
 
     def fill_username(self):
@@ -67,20 +73,20 @@ class Massar_Direction_Sagou:
         finally:
             username = self.driver.find_element(By.ID, "UserName")
             username.send_keys(os.getenv("EMAIL"))
-            print_info("USERNAME FIELD DONE")
+            print_info("USERNAME FIELD DONE", console=self.console)
         return
 
     def fill_password(self):
         password = self.driver.find_element(By.ID, "Password")
         password.send_keys(os.getenv("PASSWORD"))
-        print_info("PASSWORD FIELD DONE")
+        print_info("PASSWORD FIELD DONE", console=self.console)
         return
 
     def submit_form(self):
         # submit the form
         sumbit_button = self.driver.find_element(By.ID, "btnSubmit")
         sumbit_button.click()
-        print_info("BUTTON CLICKED")
+        print_info("BUTTON CLICKED", console=self.console)
 
         # checking if we've getting any error while submiting the form
         if not self.check_error_login():
@@ -93,13 +99,13 @@ class Massar_Direction_Sagou:
                     )
                 )
             except:
-                print_error("PLEASE CHECK YOUR LOGIN INFORMATION AND TRY AGAIN.")
+                print_error("PLEASE CHECK YOUR LOGIN INFORMATION AND TRY AGAIN.", console=self.console)
                 self.exit_program()
             else:
-                print_success("WE HAVE SUCCESSFULLY LOGGED INTO YOUR ACCOUNT")
+                print_success("WE HAVE SUCCESSFULLY LOGGED INTO YOUR ACCOUNT", console=self.console)
             return
         else:
-            print_error("ERROR: PLEASE CHECK YOUR LOGIN INFORMATION AND TRY AGAIN.")
+            print_error("ERROR: PLEASE CHECK YOUR LOGIN INFORMATION AND TRY AGAIN.", console=self.console)
             self.exit_program()
 
 
@@ -125,17 +131,20 @@ class Massar_Direction_Sagou:
         return
 
     def exit_program(self):
-        print_info("EXITING THE PROGRAM -- GOODBYE TEACHER --")
+        print_info("EXITING THE PROGRAM -- GOODBYE --", console=self.console)
         self.driver.close()
         self.driver.quit()
         sys.exit()
 
     def main_interaction(self):
-        self.get_driver()
-        self.get_site()
-        self.fill_username()
-        self.fill_password()
-        self.submit_form()
+
+        if self.get_driver():
+            self.get_site()
+            self.fill_username()
+            self.fill_password()
+            self.submit_form()
+        else:
+            return False
         #_____________________________
 
 
