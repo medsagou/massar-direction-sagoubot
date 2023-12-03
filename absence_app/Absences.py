@@ -123,7 +123,7 @@ class Absence:
                                             except:
                                                 print_error('WE COULD NOT FIND THE SAVE BUTTON ', console=self.console)
                                                 self.driver.quit()
-                                                sys.exit()
+                                                # sys.exit()
                                             else:
                                                 try:
                                                     WebDriverWait(self.driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#gridFrom > button")))
