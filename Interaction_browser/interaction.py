@@ -33,7 +33,8 @@ class Massar_Direction_Sagou:
         try:
             self.driver = webdriver.Firefox()
             self.driver.maximize_window()
-        except:
+        except Exception as e:
+            print_error(e, console=self.console)
             print_error("BROWSER OPENING ERROR, TRY TO DOWNLOAD AND INSTALL FIREFOX", console=self.console)
             return False
         else:
@@ -43,9 +44,10 @@ class Massar_Direction_Sagou:
     def get_site(self):
         try:
             self.driver.get(os.getenv("OFFICIAL_SITE"))
-        except:
+        except Exception as e:
+            print_error(e, console=self.console)
             print_error("WE CAN't OPEN THE BROWSER", console=self.console)
-            self.exit_program()
+            return False
         else:
             print_info("SITE OPENED", console=self.console)
             return True
@@ -53,7 +55,8 @@ class Massar_Direction_Sagou:
     def get_list_page(self):
         try:
             self.driver.get("https://massar.men.gov.ma/Evaluation/Absence/AbsenceJournaliereParClasse")
-        except:
+        except Exception as e:
+            print_error(e, console=self.console)
             print_error("We Can't find the list page! Close the program and try again.", console=self.console)
         else:
             print_info("GETTING TO THE LIST PAGE", console=self.console)
@@ -68,11 +71,13 @@ class Massar_Direction_Sagou:
                     )
                 )
             )
-        finally:
+        except Exception as e:
+            print_error(e, console=self.console)
+        else:
             username = self.driver.find_element(By.ID, "UserName")
             username.send_keys(os.getenv("EMAIL"))
             print_info("USERNAME FIELD DONE", console=self.console)
-        return
+            return True
 
     def fill_password(self):
         password = self.driver.find_element(By.ID, "Password")
@@ -96,14 +101,15 @@ class Massar_Direction_Sagou:
                         )
                     )
                 )
-            except:
+            except Exception as e:
+                print_error(e, console=self.console)
                 print_error("PLEASE CHECK YOUR LOGIN INFORMATION AND TRY AGAIN.", console=self.console)
                 self.exit_program()
             else:
                 print_success("WE HAVE SUCCESSFULLY LOGGED INTO YOUR ACCOUNT", console=self.console)
             return
         else:
-            print_error("ERROR: PLEASE CHECK YOUR LOGIN INFORMATION AND TRY AGAIN.", console=self.console)
+            print_error("PLEASE CHECK YOUR LOGIN INFORMATION AND TRY AGAIN.", console=self.console)
             self.exit_program()
 
 
@@ -116,7 +122,8 @@ class Massar_Direction_Sagou:
                     )
                 )
             )
-        except:
+        except Exception as e:
+            print_error(e, console=self.console)
             return False
         else:
             return True
@@ -137,10 +144,12 @@ class Massar_Direction_Sagou:
     def main_interaction(self):
 
         if self.get_driver():
-            self.get_site()
-            self.fill_username()
-            self.fill_password()
-            self.submit_form()
+            if self.get_site():
+                self.fill_username()
+                self.fill_password()
+                self.submit_form()
+            else:
+                return False
         else:
             return False
         #_____________________________
