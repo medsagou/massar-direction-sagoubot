@@ -185,7 +185,7 @@ class App(customtkinter.CTk):
                 self.check_terms_and_condition.configure(border_color="red", text_color="red")
                 self.error_label(self.label_terms)
         else:
-            paths = C_File("data_to_manage/paths.txt")
+            paths = C_File("db/paths.txt")
             L = paths.fichier_to_Liste()
             L[3] = "ABSENCE_FILE" + "=" + self.entry_path_absence.get() +"\n"
             L[4] = "EMAIL" + "=" + self.email_entry.get() +"\n"
@@ -234,7 +234,7 @@ class App(customtkinter.CTk):
                 self.college_generale
             ]
             selected_classes = []
-            paths = C_File("data_to_manage/paths.txt")
+            paths = C_File("db/paths.txt")
             if tab == "Setup":
                 # path validation
                 if self.validate_path(self.entry_path) and self.validate_path(self.entry_path2) and (
@@ -460,7 +460,7 @@ class App(customtkinter.CTk):
 
             # data entry
             # check if file exist
-            paths = C_File(file_name="data_to_manage/paths.txt")
+            paths = C_File(file_name="db/paths.txt")
             self.path={}
             if paths.existe_fichier():
                 self.paths = paths.fichier_to_Liste()
