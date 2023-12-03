@@ -6,8 +6,8 @@ Created on Wed Apr 26 22:49:39 2023
 """
 import os
 from dotenv import load_dotenv
-from utilities.print_sagou import *
-
+# from utilities import print_error, print_success, print_info
+from utilities import print_error, print_success, print_info
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait

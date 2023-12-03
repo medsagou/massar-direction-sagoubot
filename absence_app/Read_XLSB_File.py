@@ -1,7 +1,7 @@
 import pandas as pd
 import openpyxl
-from utilities.print_sagou import *
-from utilities.other_utilities import check_exist_file
+from utilities import print_error, print_success, print_info
+from utilities import check_exist_file
 import xlrd
 import os
 class Read_Db:
@@ -123,7 +123,7 @@ class Read_Db:
         workbook = openpyxl.load_workbook(self.template_file)
         source_sheet = workbook["BaseSheet"]
         classes_list = self.get_classes_name_from_xls()
-        print(classes_list)
+        # print(classes_list)
         for classe in classes_list:
             # if classe in class_in_sheet:
             #     print_error(f"SHEET FOR {classe} ALREADY EXIST")
@@ -151,7 +151,7 @@ class Read_Db:
         class_in_sheet = list(self.get_sheet_names_workbout_output())
         # print(class_in_sheet)
         for k in range(len(class_in_sheet)):
-            print(f"{k+1}/{len(class_in_sheet)}")
+            # print(f"{k+1}/{len(class_in_sheet)}")
             self.progress_bar.set((k+1)/len(class_in_sheet))
             worksheet = self.get_workbook_sheet(workbook = self.workbook_output, sheet=class_in_sheet[k])
             i = 0

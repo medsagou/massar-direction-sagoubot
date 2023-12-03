@@ -5,7 +5,7 @@ import time
 import os
 from PIL import Image
 from validate_email import validate_email
-from utilities.Class_Files import C_File, C_Dossier
+from utilities import C_File, C_Dossier
 from dotenv import set_key, load_dotenv
 
 import threading
@@ -13,8 +13,8 @@ import logging
 
 
 
-from absence_app.Read_XLSB_File import Read_Db
-from absence_app.Absences import Absence
+from absence_app import Read_Db
+from absence_app import Absence
 
 logging.basicConfig(filename='app.log', level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -252,7 +252,6 @@ class App(customtkinter.CTk):
                         self.high_school_label_eroor()
                     else:
                         self.selected_classes = selected_classes
-                        print(selected_classes)  # pass the selected_classes to back-end program
                         self.tabview_generate_lists.set("Output Location")
                         L = paths.fichier_to_Liste()
                         L[0] = "DATA" + "=" + self.entry_path.get() + "\n"
@@ -419,6 +418,7 @@ class App(customtkinter.CTk):
         if self.try_again_generate != False:
             test = self.generate_list_menu.cget("fg_color")
             if test == ("gray75", "gray25"):
+                self.tabview_generate_lists.set("Setup")
                 return
         if self.try_again_generate == False:
             self.generate_list_menu = customtkinter.CTkButton(self.sidebar_frame, corner_radius=0, height=40,
@@ -468,7 +468,6 @@ class App(customtkinter.CTk):
                     path_splited = path.split("=")
                     self.path[path_splited[0]]=path_splited[-1].strip()
 
-            # print(self.path)
             self.data_entry_frame = customtkinter.CTkFrame(self.tabview_generate_lists.tab("Setup"))
             self.data_entry_frame.grid(sticky='nw', row=0, column=0, padx=5, pady=(0, 0))
 
@@ -661,6 +660,7 @@ class App(customtkinter.CTk):
     def fill_absence_button_event(self):
         test = self.fill_absence_menu.cget("fg_color")
         if test == ("gray75", "gray25"):
+            self.tabview_fill_bot.set("Setup")
             return
         if self.try_again_fill == False:
             self.tabview_fill_bot = customtkinter.CTkTabview(self, width=250, state='disabled',

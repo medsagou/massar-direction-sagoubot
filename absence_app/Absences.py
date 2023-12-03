@@ -1,9 +1,9 @@
 import sys
 
-from utilities.print_sagou import *
+from utilities import print_error, print_success, print_info
 # from scan_absence import Scan_Absences
-from absence_app import scan_absence
-from utilities.other_utilities import get_date_list
+from absence_app import Scan_Absences
+from utilities import get_date_list
 
 
 from selenium.webdriver.common.by import By
@@ -184,9 +184,6 @@ class Absence:
         return
 
     def fill_absence(self, classe_list_absence, class_name, day_index):
-        # print(classe_list_absence)
-        # print(class_name)
-        # print(classe_list_absence)
         mytable = self.driver.find_element(By.XPATH, self.data_table_reduced_Xpath)
         i = 0
         for row in mytable.find_elements(By.CSS_SELECTOR, 'tr'):
@@ -201,8 +198,6 @@ class Absence:
                 print_error(e, self.console)
                 print_error(f'THIS CNE {cne.text} DOES NOT EXIST, THE NAME IS: {name.text}, CLASS: {class_name}', console=self.console)
             else:
-                # print(day_index)
-                # print(week_days_per_student)
                 self.fill_absence_per_day(i,week_days_per_student[day_index])
 
         # if classe_name == "1APIC-1":
@@ -211,9 +206,7 @@ class Absence:
 
     def fill_absence_per_day(self,row_i, day):
         j = 0
-        # print(day)
         if str(day[0]) == "0":
-            # print("FULL DAY")
             select_cause = Select(self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.select_Xpath)))
             select_cause.select_by_value("2")
             checkbox = self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.h_Xpath) + str(5) + "]/input[1]")
