@@ -2,7 +2,7 @@ import sys
 
 from utilities import print_error, print_success, print_info
 # from scan_absence import Scan_Absences
-from absence_app import Scan_Absences
+from .scan_absence import Scan_Absences
 from utilities import get_date_list
 
 

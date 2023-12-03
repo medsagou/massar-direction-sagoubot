@@ -1,4 +1,4 @@
-from Menu import  Menu
+from .Menu import  Menu
 from .print_sagou import print_dict
 
 import os

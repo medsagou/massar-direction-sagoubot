@@ -20,7 +20,7 @@ load_dotenv()  # loading the environment variables from the .env file
 
 
 class Massar_Direction_Sagou:
-    def __init__(self, driver: webdriver = webdriver.Firefox(), console=""):
+    def __init__(self, driver: webdriver ="", console=""):
         self.driver = driver
         self.console = console
         return
@@ -73,6 +73,7 @@ class Massar_Direction_Sagou:
             )
         except Exception as e:
             print_error(e, console=self.console)
+            return False
         else:
             username = self.driver.find_element(By.ID, "UserName")
             username.send_keys(os.getenv("EMAIL"))
@@ -142,17 +143,31 @@ class Massar_Direction_Sagou:
         # sys.exit()
 
     def main_interaction(self):
-
-        if self.get_driver():
-            if self.get_site():
-                self.fill_username()
-                self.fill_password()
-                self.submit_form()
+        try:
+            if self.get_driver():
+                if self.get_site():
+                    self.fill_username()
+                    self.fill_password()
+                    self.submit_form()
+                else:
+                    self.driver.quit()
+                    return False
             else:
-                self.driver.quit()
                 return False
-        else:
+        except:
+            print_error("Browsing context has been discarded. Stopping further execution.", console=self.console)
             return False
+
+        # if self.get_driver():
+        #     if self.get_site():
+        #         self.fill_username()
+        #         self.fill_password()
+        #         self.submit_form()
+        #     else:
+        #         self.driver.quit()
+        #         return False
+        # else:
+        #     return False
         #_____________________________
 
 
