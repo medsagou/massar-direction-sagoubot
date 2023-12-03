@@ -22,7 +22,7 @@ def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
+        base_path = sys._MEIPASS2
     except Exception:
         base_path = os.path.abspath(".")
 
@@ -64,7 +64,7 @@ class App(customtkinter.CTk):
 
         # configure window
         self.title("SagouBot Massar Direction")
-        self.iconbitmap("icon.ico")
+        self.iconbitmap(resource_path("icon.ico"))
         self.geometry(f"{1100}x{580}")
 
 
