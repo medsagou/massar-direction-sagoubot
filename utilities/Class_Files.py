@@ -9,7 +9,7 @@ import os.path
 from os import chdir, mkdir
 
 
-from print_sagou import *
+from utilities.print_sagou import *
 class C_Dossier():
 
    
@@ -36,7 +36,7 @@ class C_Dossier():
          
             
 import os.path
-from Module_Classe_Liste import C_Liste
+from utilities.Module_Classe_Liste import C_Liste
             
 
 class C_File():

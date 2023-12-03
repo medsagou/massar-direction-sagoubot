@@ -82,7 +82,7 @@ The repository "massar-direction-sagoubot" is a project that automates the proce
     ├── scan_absence.py
     ├── test_massar_app.py
     ├── ui.py
-    └── utilities.py
+    └── other_utilities.py
 
 ```
 

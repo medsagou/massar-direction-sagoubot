@@ -5,10 +5,8 @@ Created on Wed Apr 26 22:49:39 2023
 @author: Pr. Sagou
 """
 import os
-import sys
 from dotenv import load_dotenv
-from print_sagou import *
-from Class_Files import C_File
+from utilities.print_sagou import *
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By

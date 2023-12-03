@@ -1,12 +1,11 @@
 import tkinter as tk
-import tkinter.messagebox
 import customtkinter
 from tkinter import filedialog
 import time
 import os
-from PIL import Image, ImageTk
+from PIL import Image
 from validate_email import validate_email
-from Class_Files import C_File, C_Dossier
+from utilities.Class_Files import C_File, C_Dossier
 from dotenv import set_key, load_dotenv
 
 import threading
@@ -14,8 +13,8 @@ import logging
 
 
 
-from Read_XLSB_File import Read_Db
-from Absences import Absence
+from absence_app.Read_XLSB_File import Read_Db
+from absence_app.Absences import Absence
 
 logging.basicConfig(filename='app.log', level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -43,6 +42,9 @@ class App(customtkinter.CTk):
         self.main_logo_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "logo_black.png")),
             dark_image=Image.open(os.path.join(image_path, "logo_white.png")), size=(200,200))
+        self.about_us_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "logo_black.png")),
+            dark_image=Image.open(os.path.join(image_path, "logo_white.png")), size=(150, 150))
         # self.main_logo_photo = ImageTk.PhotoImage(self.main_logo_image)
 
 
@@ -569,8 +571,8 @@ class App(customtkinter.CTk):
             self.submit = customtkinter.CTkButton(self.tabview_generate_lists.tab("Setup"), text="Next",
                                                   command=self.go_to_output_location, width=50)
             self.submit.grid(row=6, column=5, padx=10, pady=(5, 5))
-            self.return_btn = customtkinter.CTkButton(self.tabview_generate_lists.tab("Setup"), text="Exit", command=self.back,
-                                                      width=50, fg_color="gray30")
+            self.return_btn = customtkinter.CTkButton(self.tabview_generate_lists.tab("Setup"), text="Exit",
+                                                      width=50, fg_color="gray30", command=self.exit)
             self.return_btn.grid(row=6, column=4, padx=10, pady=(5, 5))
 
             # output location tab
@@ -604,7 +606,7 @@ class App(customtkinter.CTk):
             self.tabview_generate_lists.tab("Review & Submit").grid_rowconfigure(0, weight=1)
             self.tabview_generate_lists.tab("Review & Submit").grid_columnconfigure((0, 1, 2), weight=1)
             self.submit3 = customtkinter.CTkButton(self.tabview_generate_lists.tab("Review & Submit"), text="Submit",
-                                                  command=self.generate_absence_file, width=50)
+                                                  command=self.generate_absence_file, width=60)
             self.submit3.grid(row=4, column=5, padx=10, pady=(5, 5))
             self.return_btn3 = customtkinter.CTkButton(self.tabview_generate_lists.tab("Review & Submit"), text="Back", command=self.back,
                                                       width=50, fg_color="gray30")
@@ -616,7 +618,9 @@ class App(customtkinter.CTk):
             self.tabview_generate_lists.grid()
             if not self.console_text.grid_info():
                 self.console_text.grid()
-            self.about_us_text.grid_remove()
+            if self.about_us_text is not None:
+                self.about_us_text.grid_remove()
+                self.about_us_logo.grid_remove()
             self.select_frame_by_name("Generate Lists")
 
 
@@ -730,8 +734,8 @@ class App(customtkinter.CTk):
             self.submit4 = customtkinter.CTkButton(self.tabview_fill_bot.tab("Setup"), text="Next",
                                                   command=self.go_to_review2, width=50)
             self.submit4.grid(row=6, column=5, padx=10, pady=(5, 5))
-            self.return_btn4 = customtkinter.CTkButton(self.tabview_fill_bot.tab("Setup"), text="Exit", command=self.back2,
-                                                      width=50, fg_color="gray30")
+            self.return_btn4 = customtkinter.CTkButton(self.tabview_fill_bot.tab("Setup"), text="Exit",
+                                                      width=50, fg_color="gray30", command=self.exit)
             self.return_btn4.grid(row=6, column=4, padx=10, pady=(5, 5))
 
 
@@ -744,6 +748,7 @@ class App(customtkinter.CTk):
 
             if self.about_us_text is not None:
                 self.about_us_text.grid_remove()
+                self.about_us_logo.grid_remove()
             self.console_text.grid()
             self.try_again_fill = True
 
@@ -752,7 +757,9 @@ class App(customtkinter.CTk):
             self.tabview_generate_lists.grid_remove()
             self.tabview_fill_bot.grid()
             self.console_text.grid()
-            self.about_us_text.grid_remove()
+            if self.about_us_text is not None:
+                self.about_us_text.grid_remove()
+                self.about_us_logo.grid_remove()
             self.select_frame_by_name("Fill Absence Bot")
 
 
@@ -765,10 +772,15 @@ class App(customtkinter.CTk):
                 self.tabview_fill_bot.grid_remove()
         if self.about_us_text is not None:
             self.about_us_text.grid()
+            self.about_us_logo.grid()
+            self.console_text.grid_remove()
             self.select_frame_by_name("About us")
         else:
+            self.about_us_logo = customtkinter.CTkLabel(self, text="",
+                                                       image=self.about_us_image)
+            self.about_us_logo.grid(row=0, column=1, padx=10, pady=10)
             self.about_us_text = customtkinter.CTkTextbox(self, height=200, wrap="word", font=("Arial", 18))
-            self.about_us_text.grid(row=0, column=1,rowspan=3, columnspan=6, padx=(20, 20), pady = (15, 20), sticky = "nsew")
+            self.about_us_text.grid(row=1, column=1,rowspan=3, columnspan=6, padx=(20, 20), pady = (15, 20), sticky = "nsew")
             self.console_text.grid_remove()
 
             self.about_us_text.tag_config("Title", foreground="gray92")
@@ -795,18 +807,23 @@ class App(customtkinter.CTk):
             self.about_us_text.insert("end", "\n\nUser Consent", "subTitle")
             self.about_us_text.insert("end",
                                       "\nBy using Massar Direction Sagoubot, you consent to the utilization of your Massar account credentials for the sole purpose of automating absence data management. We prioritize transparency and security in handling your login information.\n", "Paragraph")
-            self.about_us_text.insert("end", "\n\n Questions or Concerns", "subTitle")
+            self.about_us_text.insert("end", "\n\nQuestions or Concerns", "subTitle")
             self.about_us_text.insert("end",
                                       "\nIf you have any questions, concerns, or require further clarification regarding our terms, privacy practices, or the usage of your account information, please feel free to reach out to us at sakou81833@gmail.com. Your satisfaction and trust are our top priorities.\n", "Paragraph")
             self.about_us_text.configure(state="disabled")
             self.select_frame_by_name("About us")
 
+    def exit(self):
+        result = tk.messagebox.askokcancel("Confirmation", "Are you sure you want to exit?")
+        if result:  # If the user confirms
+            app.quit()
     # backend functions
     def generate_absence_file(self):
         self.generate_progress_bar()
         self.submit3.configure(state="disabled")
         self.return_btn3.configure(state="disabled")
         self.console_text.configure(state="normal")
+        self.label_all_review1.configure(text_color="gray35")
         def run_fill_all_class_sheets():
             reader = Read_Db(input_file=self.entry_path.get(),
                              template_file=self.entry_path2.get(),
@@ -820,6 +837,8 @@ class App(customtkinter.CTk):
             self.return_btn3.configure(state="normal")
             self.progressbar_1.grid_remove()
             self.console_text.configure(state="disabled")
+            self.label_all_review1.configure(text_color="gray70")
+
         thread = threading.Thread(target=run_fill_all_class_sheets)
         thread.start()
         return
@@ -830,10 +849,12 @@ class App(customtkinter.CTk):
         self.console_text.configure(state="normal")
         self.run_bot.configure(state="disabled")
         self.return_btn5.configure(state="disabled")
+
+        self.label_all_review2.configure(text_color="gray35")
         def run_fill_absence():
 
             # loading the class here because of the .env file not getting refreshed
-            from interaction import Massar_Direction_Sagou
+            from Interaction_browser import Massar_Direction_Sagou
             interaction_object = Massar_Direction_Sagou(console=self.console_text)
             driver_test = interaction_object.main_interaction()
             if driver_test:
@@ -844,6 +865,7 @@ class App(customtkinter.CTk):
             self.console_text.configure(state="disabled")
             self.run_bot.configure(state="normal")
             self.return_btn5.configure(state="normal")
+            self.label_all_review2.configure(text_color="gray70")
             self.progressbar_1.grid_remove()
         thread = threading.Thread(target=run_fill_absence)
         thread.start()

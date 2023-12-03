@@ -1,7 +1,7 @@
 import pandas as pd
 import openpyxl
-from print_sagou import *
-from utilities import check_exist_file
+from utilities.print_sagou import *
+from utilities.other_utilities import check_exist_file
 import xlrd
 import os
 class Read_Db:

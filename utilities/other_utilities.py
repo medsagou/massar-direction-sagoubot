@@ -1,6 +1,6 @@
 import string
 from datetime import datetime, timedelta
-from print_sagou import *
+from utilities import print_sagou
 import os
 
 def get_columns_for_two(start_column = "", end_column = "", column_to_remove = ""):

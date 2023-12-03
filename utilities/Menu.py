@@ -45,7 +45,7 @@ class Menu:
 
 
     def get_menu_db(self, menu_id):
-        menuFichier = C_File('db/menu.txt', sep=";")
+        menuFichier = C_File('../db/menu.txt', sep=";")
         menu = menuFichier.existe_element_fichier3(str(menu_id))
         if menu[0]:
             L = menuFichier.str_to_liste(menu[1].replace('\n', ''))
