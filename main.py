@@ -328,6 +328,7 @@ class App(customtkinter.CTk):
             return
         self.entry_path.delete(0, tk.END)  # Clear the entry
         self.entry_path.insert(0, os.path.abspath(path))
+        self.path["DATA"] = path
         file = C_File(file_name=path)
         if file.existe_fichier():
             self.reset_error1()
@@ -342,6 +343,7 @@ class App(customtkinter.CTk):
             return
         self.entry_path2.delete(0, tk.END)  # Clear the entry
         self.entry_path2.insert(0, os.path.abspath(path))
+        self.path["TEMPLATE"] = path
         file = C_File(file_name=path)
         if file.existe_fichier():
             self.reset_error2()
@@ -350,9 +352,10 @@ class App(customtkinter.CTk):
             ("Text files", "*.xlsx"),  # Display only .txt files
             ("All files", "*.*")  # Display all files
         )
-        path = filedialog.askopenfilename(filetypes=filetypes, initialdir=os.path.dirname(self.path["ABSENCE_FILE"]) if self.path["TEMPLATE"] != "" else os.path.join(os.path.expanduser('~'), 'Documents'))
+        path = filedialog.askopenfilename(filetypes=filetypes, initialdir=os.path.dirname(self.path["ABSENCE_FILE"]) if self.path["ABSENCE_FILE"] != "" else os.path.join(os.path.expanduser('~'), 'Documents'))
         if path == "":
             return
+        self.path["ABSENCE_FILE"] = path
         self.entry_path_absence.delete(0, tk.END)  # Clear the entry
         self.entry_path_absence.insert(0, os.path.abspath(path))
         file = C_File(file_name=path)
