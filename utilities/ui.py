@@ -1,5 +1,5 @@
-from print_sagou import *
 from Menu import  Menu
+from .print_sagou import print_dict
 
 import os
 

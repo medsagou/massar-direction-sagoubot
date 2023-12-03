@@ -70,10 +70,10 @@ The repository "massar-direction-sagoubot" is a project that automates the proce
     ├── Class_Files.py
     ├── db/
     │   └── menu.txt
-    ├── GUI.py
+    ├── main.py
     ├── images/
     ├── interaction.py
-    ├── main.py
+    ├── main_noGUI.py
     ├── Menu.py
     ├── Module_Classe_Liste.py
     ├── print_sagou.py
@@ -150,7 +150,7 @@ pip install -r requirements.txt
 ### 🤖 Running massar-direction-sagoubot
 
 ```sh
-python main.py
+python main_noGUI.py
 ```
 
 ### 🧪 Tests
