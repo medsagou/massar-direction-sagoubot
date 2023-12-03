@@ -10,11 +10,24 @@ from dotenv import set_key, load_dotenv
 
 import threading
 import logging
-
+import sys
 
 
 from absence_app import Read_Db
 from absence_app import Absence
+
+
+# https://stackoverflow.com/questions/31836104/pyinstaller-and-onefile-how-to-include-an-image-in-the-exe-file
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 
 logging.basicConfig(filename='app.log', level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -36,7 +49,7 @@ class App(customtkinter.CTk):
         self.try_again_fill = False
         self.progressbar_1 = None
 
-        image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
+        image_path = resource_path("images")
 
 
         self.main_logo_image = customtkinter.CTkImage(
@@ -185,7 +198,7 @@ class App(customtkinter.CTk):
                 self.check_terms_and_condition.configure(border_color="red", text_color="red")
                 self.error_label(self.label_terms)
         else:
-            paths = C_File("db/paths.txt")
+            paths = C_File(resource_path("db/paths.txt"))
             L = paths.fichier_to_Liste()
             L[3] = "ABSENCE_FILE" + "=" + self.entry_path_absence.get() +"\n"
             L[4] = "EMAIL" + "=" + self.email_entry.get() +"\n"
@@ -234,7 +247,7 @@ class App(customtkinter.CTk):
                 self.college_generale
             ]
             selected_classes = []
-            paths = C_File("db/paths.txt")
+            paths = C_File(resource_path("db/paths.txt"))
             if tab == "Setup":
                 # path validation
                 if self.validate_path(self.entry_path) and self.validate_path(self.entry_path2) and (
@@ -460,7 +473,7 @@ class App(customtkinter.CTk):
 
             # data entry
             # check if file exist
-            paths = C_File(file_name="db/paths.txt")
+            paths = C_File(file_name=resource_path("db/paths.txt"))
             self.path={}
             if paths.existe_fichier():
                 self.paths = paths.fichier_to_Liste()
