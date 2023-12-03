@@ -44,6 +44,17 @@ The repository "massar-direction-sagoubot" is a project that automates the proce
 
 ---
 
+## 📍 Screenshots
+
+<img src="./images/img.png"/>
+<br>
+<br>
+<img src="./images/img_1.png"/>
+<br>
+<br>
+<img src="./images/img_2.png"/>
+---
+
 ## 📦 Features
 
 |     | Feature             | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -66,23 +77,31 @@ The repository "massar-direction-sagoubot" is a project that automates the proce
 ```sh
 └── massar-direction-sagoubot/
     ├── .env
-    ├── Absences.py
-    ├── Class_Files.py
+    ├── absence_app/
+    │   ├── __init__.py
+    │   ├── Absences.py
+    │   ├── Read_XLSB_File.py
+    │   └── scan_absence.py
     ├── db/
+    │   ├── paths.txt
     │   └── menu.txt
-    ├── main.py
+    ├── Interaction_browser/
+    │   ├── __init__.py
+    │   └── interaction.py
+    ├── utilities/
+    │   ├── __init__.py
+    │   ├── Class_Files.py
+    │   ├── Menu.py
+    │   ├── Module_Classe_Liste.py
+    │   ├── other_utilities.py
+    │   ├── print_sagou.py
+    │   └── ui.py
     ├── images/
-    ├── interaction.py
+    ├── main.py
     ├── main_noGUI.py
-    ├── Menu.py
-    ├── Module_Classe_Liste.py
-    ├── print_sagou.py
-    ├── Read_XLSB_File.py
     ├── requirements.txt
-    ├── scan_absence.py
     ├── test_massar_app.py
-    ├── ui.py
-    └── other_utilities.py
+    └── SagouBot.exe
 
 ```
 
@@ -121,11 +140,7 @@ The repository "massar-direction-sagoubot" is a project that automates the proce
 
 Please ensure you have the following dependencies installed on your system:
 
-`- ℹ️ Dependency 1`
-
-`- ℹ️ Dependency 2`
-
-`- ℹ️ ...`
+`- ℹ️ Python 3.12 1`
 
 ### 🔧 Installation
 
@@ -150,7 +165,7 @@ pip install -r requirements.txt
 ### 🤖 Running massar-direction-sagoubot
 
 ```sh
-python main_noGUI.py
+python main.py
 ```
 
 ### 🧪 Tests
@@ -161,13 +176,6 @@ pytest
 
 ---
 
-## 🛣 Project Roadmap
-
-> - [x] `ℹ️  Task 1: Implement X`
-> - [ ] `ℹ️  Task 2: Implement Y`
-> - [ ] `ℹ️ ...`
-
----
 
 ## 🤝 Contributing
 
@@ -216,7 +224,7 @@ This project is protected under the [GNU General Public License v3.0](https://ch
 
 ## 👏 Acknowledgments
 
-- List any resources, contributors, inspiration, etc. here.
+- Thanks For mr Abdlaziz and mr Said for geving me the credientls so I could create this program.
 
 [**Return**](#Top)
 
