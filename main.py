@@ -370,6 +370,7 @@ class App(customtkinter.CTk):
             return
         self.output_path.delete(0, tk.END)
         self.output_path.insert(0, os.path.abspath(path))
+        self.path["DIR"] = path
         dir = C_Dossier()
         if dir.existe_dossier(Chemin=path):
             self.reset_error3()
