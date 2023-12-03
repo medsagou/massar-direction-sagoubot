@@ -43,7 +43,7 @@ class Massar_Direction_Sagou:
 
     def get_site(self):
         try:
-            self.driver.get(os.getenv("OFFICIAL_SITE"))
+            self.driver.get("https://massar.men.gov.ma/Account")
         except Exception as e:
             print_error(e, console=self.console)
             print_error("WE CAN't OPEN THE BROWSER", console=self.console)
