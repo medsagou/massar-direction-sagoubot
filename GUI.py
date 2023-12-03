@@ -31,9 +31,11 @@ class App(customtkinter.CTk):
         self.tabview_generate_lists = None
         self.tabview_fill_bot= None
         self.generate_list_menu = None
+        self.about_us_text = None
         self.fill_absence_menu = None
         self.try_again_generate = False
         self.try_again_fill = False
+        self.progressbar_1 = None
 
         image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
 
@@ -393,12 +395,23 @@ class App(customtkinter.CTk):
         self.about_us_menu.configure(fg_color=("gray75", "gray25") if name == "About us" else "transparent")
 
     def generate_progress_bar(self, determinate=True):
-        self.progressbar_1 = customtkinter.CTkProgressBar(self.sidebar_frame, mode="determinate" if determinate==True else "indeterminate")
+        if self.progressbar_1 is None:
+            self.progressbar_1 = customtkinter.CTkProgressBar(self.sidebar_frame,
+                                                              mode="determinate" if determinate == True else "indeterminate")
+            state = True
+        else:
+            self.progressbar_1.configure(mode="determinate" if determinate == True else "indeterminate")
+            state = False
+
         if determinate:
             self.progressbar_1.set(0)
         else:
             self.progressbar_1.start()
-        self.progressbar_1.grid(row=6, column=0, padx=20, pady=20, sticky="ew")
+        if state:
+            self.progressbar_1.grid(row=6, column=0, padx=20, pady=20, sticky="ew")
+        else:
+            self.progressbar_1.grid()
+
 
     def generate_list_menu_button_event(self):
         if self.try_again_generate != False:
@@ -599,8 +612,11 @@ class App(customtkinter.CTk):
             self.select_frame_by_name("Generate Lists")
             self.try_again_generate = True
         else:
-            self.tabview_fill_bot.grid_forget()
-            self.tabview_generate_lists.grid(row=0, column=1, padx=(20, 20), pady=(5, 0), sticky="nsew")
+            self.tabview_fill_bot.grid_remove()
+            self.tabview_generate_lists.grid()
+            if not self.console_text.grid_info():
+                self.console_text.grid()
+            self.about_us_text.grid_remove()
             self.select_frame_by_name("Generate Lists")
 
 
@@ -725,18 +741,65 @@ class App(customtkinter.CTk):
             self.return_btn5 = customtkinter.CTkButton(self.tabview_fill_bot.tab("Review & Submit"), text="Back", command=self.back2,
                                                        width=50, fg_color="gray30")
             self.return_btn5.grid(row=6, column=4, padx=10, pady=(5, 5))
+
+            if self.about_us_text is not None:
+                self.about_us_text.grid_remove()
+            self.console_text.grid()
             self.try_again_fill = True
 
             self.select_frame_by_name("Fill Absence Bot")
         else:
-            self.tabview_generate_lists.grid_forget()
-            self.tabview_fill_bot.grid(row=0, column=1, padx=(20, 20), pady=(5, 0), sticky="nsew")
+            self.tabview_generate_lists.grid_remove()
+            self.tabview_fill_bot.grid()
+            self.console_text.grid()
+            self.about_us_text.grid_remove()
             self.select_frame_by_name("Fill Absence Bot")
 
 
 
     def about_us_button_event(self):
-        self.select_frame_by_name("About us")
+        if self.tabview_generate_lists.grid_info():
+            self.tabview_generate_lists.grid_remove()
+        if self.tabview_fill_bot is not None:
+            if self.tabview_fill_bot.grid_info():
+                self.tabview_fill_bot.grid_remove()
+        if self.about_us_text is not None:
+            self.about_us_text.grid()
+            self.select_frame_by_name("About us")
+        else:
+            self.about_us_text = customtkinter.CTkTextbox(self, height=200, wrap="word", font=("Arial", 18))
+            self.about_us_text.grid(row=0, column=1,rowspan=3, columnspan=6, padx=(20, 20), pady = (15, 20), sticky = "nsew")
+            self.console_text.grid_remove()
+
+            self.about_us_text.tag_config("Title", foreground="gray92")
+            self.about_us_text.tag_config("subTitle", foreground="gray65")
+            self.about_us_text.tag_config("Paragraph", foreground="gray50")
+            # Content to be displayed
+
+
+
+            # Insert the formatted text into the Text widget
+            self.about_us_text.insert("end", "\n About Us", "LargeText")
+            self.about_us_text.insert("end", "\n\nMassar Direction Sagoubot is a cutting-edge automation project designed to streamline and simplify the process of managing absence data for multiple classes within a web application. Our solution is meticulously crafted using modern technologies and software tools to optimize efficiency and save valuable time for teachers and administrators.\n", "Paragraph")
+            self.about_us_text.insert("end", "\n\n Terms and Privacy", "Title")
+            self.about_us_text.insert("end", "\n\nAccount Access", "subTitle")
+            self.about_us_text.insert("end",
+                                      "\nTo enhance your experience with Massar Direction Sagoubot, the application utilizes your account credentials to securely log in to the Massar website. Your privacy and security are of utmost importance to us. We ensure that your login information is encrypted and used solely for the purpose of automating absence data management.\n", "Paragraph")
+            self.about_us_text.insert("end", "\n\nData Handling", "subTitle")
+            self.about_us_text.insert("end",
+                                      "\nYour data, specifically related to absence records and class information, is processed within the confines of the application to facilitate automation. We do not store or retain any of your personal data beyond the scope of improving application functionality.\n",
+                                      "Paragraph")
+            self.about_us_text.insert("end", "\n\nSecurity Measures", "subTitle")
+            self.about_us_text.insert("end",
+                                      "\nWe employ industry-standard security measures to safeguard your account information. This includes encryption protocols and best practices to prevent unauthorized access or misuse of your credentials.\n", "Paragraph")
+            self.about_us_text.insert("end", "\n\nUser Consent", "subTitle")
+            self.about_us_text.insert("end",
+                                      "\nBy using Massar Direction Sagoubot, you consent to the utilization of your Massar account credentials for the sole purpose of automating absence data management. We prioritize transparency and security in handling your login information.\n", "Paragraph")
+            self.about_us_text.insert("end", "\n\n Questions or Concerns", "subTitle")
+            self.about_us_text.insert("end",
+                                      "\nIf you have any questions, concerns, or require further clarification regarding our terms, privacy practices, or the usage of your account information, please feel free to reach out to us at sakou81833@gmail.com. Your satisfaction and trust are our top priorities.\n", "Paragraph")
+            self.about_us_text.configure(state="disabled")
+            self.select_frame_by_name("About us")
 
     # backend functions
     def generate_absence_file(self):
@@ -755,7 +818,7 @@ class App(customtkinter.CTk):
             time.sleep(3)
             self.submit3.configure(state="normal")
             self.return_btn3.configure(state="normal")
-            self.progressbar_1.grid_forget()
+            self.progressbar_1.grid_remove()
             self.console_text.configure(state="disabled")
         thread = threading.Thread(target=run_fill_all_class_sheets)
         thread.start()
@@ -781,7 +844,7 @@ class App(customtkinter.CTk):
             self.console_text.configure(state="disabled")
             self.run_bot.configure(state="normal")
             self.return_btn5.configure(state="normal")
-            self.progressbar_1.grid_forget()
+            self.progressbar_1.grid_remove()
         thread = threading.Thread(target=run_fill_absence)
         thread.start()
         return
