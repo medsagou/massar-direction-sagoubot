@@ -20,8 +20,8 @@ load_dotenv()  # loading the environment variables from the .env file
 
 
 class Massar_Direction_Sagou:
-    def __init__(self, driver = "", console=""):
-        self.driver = console
+    def __init__(self, driver: webdriver = webdriver.Firefox(), console=""):
+        self.driver = driver
         self.console = console
         return
 
@@ -149,6 +149,7 @@ class Massar_Direction_Sagou:
                 self.fill_password()
                 self.submit_form()
             else:
+                self.driver.quit()
                 return False
         else:
             return False

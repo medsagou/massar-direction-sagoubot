@@ -31,7 +31,8 @@ class Absence:
     def get_list_page(self):
         try:
             self.driver.get("https://massar.men.gov.ma/Evaluation/Absence/AbsenceJournaliereParClasse")
-        except:
+        except Exception as e:
+            print_error(e, console=self.console)
             print_error("We Can't find the list page! Close the program and try again.", console=self.console)
         else:
             print_info("GETTING TO THE LIST PAGE", console=self.console)
@@ -53,7 +54,8 @@ class Absence:
                         )
                     )
                 )
-            except:
+            except Exception as e:
+                print_error(e, console=self.console)
                 print_error("CHECK YOUR INTERNET CONNECTION THEN TRY AGAIN", console=self.console)
             TypeEnseignement_Select.select_by_value(TypeEnseignement_option.get_attribute("value"))
 
@@ -98,7 +100,8 @@ class Absence:
                                             WebDriverWait(self.driver, 15).until(
                                                 EC.element_to_be_clickable((By.CSS_SELECTOR, '#search > div > div > div > div.box-body > div.blocBtn > button'))
                                             )
-                                        except:
+                                        except Exception as e:
+                                            print_error(e, console=self.console)
                                             pass
                                         else:
                                             self.searchBtn = self.driver.find_element(By.CSS_SELECTOR, '#search > div > div > div > div.box-body > div.blocBtn > button')
@@ -111,7 +114,8 @@ class Absence:
                                                     )
                                                 )
                                             )
-                                        except:
+                                        except Exception as e:
+                                            print_error(e, console=self.console)
                                             continue
                                         else:
                                             print_info("FILLING THE ABSENCE...", console=self.console)
@@ -120,14 +124,16 @@ class Absence:
                                                 WebDriverWait(self.driver, 30).until(
                                                     EC.presence_of_element_located((By.CSS_SELECTOR,"#gridFrom > button"))
                                                 )
-                                            except:
+                                            except Exception as e:
+                                                print_error(e, console=self.console)
                                                 print_error('WE COULD NOT FIND THE SAVE BUTTON ', console=self.console)
                                                 self.driver.quit()
                                                 # sys.exit()
                                             else:
                                                 try:
                                                     WebDriverWait(self.driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#gridFrom > button")))
-                                                except:
+                                                except Exception as e:
+                                                    print_error(e, console=self.console)
                                                     print_error('WE COULD NOT FIND THE SAVE BUTTON', console=self.console)
                                                 else:
                                                     saveBtn = self.driver.find_element(By.CSS_SELECTOR, "#gridFrom > button")
@@ -143,7 +149,8 @@ class Absence:
                                                         )
                                                     )
                                                 )
-                                            except:
+                                            except Exception as e:
+                                                print_error(e, console=self.console)
                                                 pass
                                             try:
                                                 WebDriverWait(self.driver, 10).until(
@@ -153,7 +160,8 @@ class Absence:
                                                         )
                                                     )
                                                 )
-                                            except:
+                                            except Exception as e:
+                                                print_error(e, console=self.console)
                                                 print_error('WE COULD NOT FIND THE CLOSE BUTTON', console=self.console)
                                             else:
                                                 print_info('CLOSE BUTTON IS CLOSED', console=self.console)
@@ -167,7 +175,8 @@ class Absence:
                                                         )
                                                     )
                                                 )
-                                            except:
+                                            except Exception as e:
+                                                print_error(e, console=self.console)
                                                 pass
 
                                             print_success(f"CLASS {Classe_option.text} PASSED, DATE {self.dates[l]}", console=self.console)
@@ -188,7 +197,8 @@ class Absence:
             try:
                 week_absence_student = classe_list_absence[cne.text]
                 week_days_per_student = self.list_week_to_days(week_absence_student)
-            except KeyError:
+            except KeyError as e:
+                print_error(e, self.console)
                 print_error(f'THIS CNE {cne.text} DOES NOT EXIST, THE NAME IS: {name.text}, CLASS: {class_name}', console=self.console)
             else:
                 # print(day_index)
@@ -218,7 +228,8 @@ class Absence:
                         )
                     )
                 )
-            except:
+            except Exception as e:
+                print_error(e, self.console)
                 print_error("AN ERROR IN HTML SELECTION PLEASE TRY AGAIN.", console=self.console)
                 self.exit_program()
             select_cause = Select(self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.select_Xpath)))
