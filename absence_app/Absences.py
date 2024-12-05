@@ -137,9 +137,12 @@ class Absence:
                                                     print_error('WE COULD NOT FIND THE SAVE BUTTON', console=self.console)
                                                 else:
                                                     saveBtn = self.driver.find_element(By.CSS_SELECTOR, "#gridFrom > button")
-                                                    # saveBtn.click()
+                                                    saveBtn.click()
                                                     self.driver.execute_script("arguments[0].click();", saveBtn)
-
+                                                    # 7ifd hnaya
+                                                    # import time
+                                                    # print('sleeping')
+                                                    # time.sleep(10)
                                                     print_info('SAVE BUTTON IS CLICKED', console=self.console)
                                             try:
                                                 WebDriverWait(self.driver, 3).until(
@@ -180,7 +183,8 @@ class Absence:
                                                 pass
 
                                             print_success(f"CLASS {Classe_option.text} PASSED, DATE {self.dates[l]}", console=self.console)
-
+        self.driver.quit()
+        print_success("We finish all the classes".upper(), console=self.console)
         return
 
     def fill_absence(self, classe_list_absence, class_name, day_index):
@@ -212,7 +216,7 @@ class Absence:
             checkbox = self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.h_Xpath) + str(5) + "]/input[1]")
             checkbox.click()
             return
-        elif "x" in day:
+        elif "x" in day or 'c' in day:
             try:
                 WebDriverWait(self.driver, 10).until(
                     EC.presence_of_element_located(
@@ -226,11 +230,14 @@ class Absence:
                 print_error("AN ERROR IN HTML SELECTION PLEASE TRY AGAIN.", console=self.console)
                 self.exit_program()
             select_cause = Select(self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.select_Xpath)))
-            select_cause.select_by_value("2")
+            if 'c' not in day:
+                select_cause.select_by_value("2")
+            else:
+                select_cause.select_by_value("1")
             for i in range(len(day)):
                 if day[i] == None:
                     continue
-                if str(day[i]) == "x":
+                if str(day[i]) == "x" or str(day[i]) == "c":
                     # print(day[i])
                     if i < 4:
                         checkbox = self.driver.find_element(By.XPATH, str(self.row_Xpath) + str(row_i) + str(self.h_Xpath) + str(6 + i) + "]/input[1]")

@@ -5,6 +5,7 @@ Created on Wed Apr 26 22:49:39 2023
 @author: Pr. Sagou
 """
 import os
+import time
 from dotenv import load_dotenv
 # from utilities import print_error, print_success, print_info
 from utilities import print_error, print_success, print_info
@@ -54,6 +55,7 @@ class Massar_Direction_Sagou:
 
     def get_list_page(self):
         try:
+            print_info('Getting the absence site'.upper(), console=self.console)
             self.driver.get("https://massar.men.gov.ma/Evaluation/Absence/AbsenceJournaliereParClasse")
         except Exception as e:
             print_error(e, console=self.console)
@@ -91,11 +93,10 @@ class Massar_Direction_Sagou:
         sumbit_button = self.driver.find_element(By.ID, "btnSubmit")
         sumbit_button.click()
         print_info("BUTTON CLICKED", console=self.console)
-
         # checking if we've getting any error while submiting the form
         if not self.check_error_login():
             try:
-                WebDriverWait(self.driver, 10).until(
+                WebDriverWait(self.driver, 30).until(
                     EC.presence_of_element_located(
                         (
                             By.ID, "sidebar-menu",
@@ -124,7 +125,8 @@ class Massar_Direction_Sagou:
                 )
             )
         except Exception as e:
-            print_error(e, console=self.console)
+            # continue
+            # print_error(e, console=self.console)
             return False
         else:
             return True
@@ -149,6 +151,7 @@ class Massar_Direction_Sagou:
                     self.fill_username()
                     self.fill_password()
                     self.submit_form()
+                    return True
                 else:
                     self.driver.quit()
                     return False

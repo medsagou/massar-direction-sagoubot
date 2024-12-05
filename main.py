@@ -876,6 +876,7 @@ class App(customtkinter.CTk):
             driver_test = interaction_object.main_interaction()
             if driver_test:
                 interaction_object.get_list_page()
+                print(self.entry_path_absence.get())
                 absence = Absence(driver=interaction_object.driver, console=self.console_text)
                 absence.main_absence_loop()
             time.sleep(3)

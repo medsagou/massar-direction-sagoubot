@@ -3,16 +3,18 @@ import openpyxl
 from utilities import print_error, print_success, print_info
 from utilities import check_exist_file
 import xlrd
+import re
 import os
+import time
 class Read_Db:
-    def __init__(self, input_file = r"data_to_manage/file_data.xls", template_file = "data_to_manage/template.xlsx", output_file = "data_to_manage/absence.xlsx", df = "", required_classes=[], progress_bar="", console=""):
+    def __init__(self, input_file = r"data_to_manage/file_data.xls", template_file = "data_to_manage/template.xlsx", output_file = r"C:\Users\HP\Desktop\abs2025\absence.xlsx", df = "", required_classes=[], progress_bar="", console=""):
         self.index = {0: "CLASS_StudentIndex",
                       1: "Niveau",
                       2: "class_name",
                       3: "student_index",
-                      "Unnamed: 23": "CNE",
-                      "Unnamed: 12": "nom",
-                      "Unnamed: 16": "prenom"}
+                      "Unnamed: 1": "CNE",
+                      "Unnamed: 2": "nom",
+                      "Unnamed: 3": "prenom"}
         self.input_file = input_file
         self.output_file = output_file
         self.template_file = template_file
@@ -45,7 +47,7 @@ class Read_Db:
         for sheet_name in sheet_names:
             sheet = workbook[sheet_name]
             df = pd.read_excel(self.input_file, sheet_name=sheet_name)
-            class_name = sheet.cell_value(10, 8)
+            class_name = sheet.cell_value(7, 2)
             data[class_name] = df
         self.df = data
         return data
@@ -58,12 +60,13 @@ class Read_Db:
         sheet_names = workbook.sheet_names()
         for sheet_name in sheet_names:
             sheet = workbook[sheet_name]
-            class_name = sheet.cell_value(10, 8)
+            class_name = sheet.cell_value(7, 2)
             # print(class_name)
             classes.append(class_name)
         return classes
 
     def get_workbook(self, file_name):
+        print(file_name)
         workbook = openpyxl.load_workbook(file_name)
         return workbook
 
@@ -123,17 +126,28 @@ class Read_Db:
         workbook = openpyxl.load_workbook(self.template_file)
         source_sheet = workbook["BaseSheet"]
         classes_list = self.get_classes_name_from_xls()
+        print(len(classes_list))
         # print(classes_list)
+
+        # print(self.required_classes)
+        i = 0
         for classe in classes_list:
             # if classe in class_in_sheet:
             #     print_error(f"SHEET FOR {classe} ALREADY EXIST")
             #     continue
             # if not in college just skipit
-            if classe.split("-")[0][1:] not in self.required_classes:
+            # print(classe)
+            # print(classe.split("-")[0][1:])
+            # pattern = re.compile(rf"^(\d*)({'|'.join(map(re.escape, self.required_classes))})")
+            # if not bool(pattern.match(classe)):
+            #     continue
+            if 'ASCPEB' in classe or 'APIC' in classe or 'ASCG' in classe:
                 continue
+            i += 1
             print_info(f"CREATE A SHEET FOR {classe} CLASS", console=self.console)
             if classe != "":
                 self.create_copy_sheet(class_name=classe, workbook=workbook, source_sheet = source_sheet)
+        print_info(f"{i} Classes", console=self.console)
 
         workbook.save(str(self.output_file))
         workbook.close()
@@ -166,6 +180,9 @@ class Read_Db:
             self.get_df_from_xls()
             if class_in_sheet[k] == 'BaseSheet':
                 continue
+            # for index, row in self.df[class_in_sheet[k]].iterrows():
+            #     print(index, row)
+            # time.sleep(20000)
             for index, row in self.df[class_in_sheet[k]].iterrows():
                 if pd.isna(row[self.get_key("CNE")]):
                     continue
